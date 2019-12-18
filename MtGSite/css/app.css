@@ -1,4 +1,8 @@
 /* DEFAULTS */
+body {
+    background-color: #F6F6F6;
+    color: #787878
+}
 
 /* Header */
 header {
@@ -11,9 +15,17 @@ header a{
 header a:hover {
     background-color: #134C5A;
 }
-body {
-    background-color: #F6F6F6;
-    color: #787878
+
+/* Footer */
+footer {
+    background-color: #0C2F37;
+}
+footer a {
+    color: #F6F6F6;
+}
+footer a:hover {
+    color: #CBCBCB;
+    text-decoration: underline;
 }
 
 
