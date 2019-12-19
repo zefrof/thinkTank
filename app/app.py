@@ -18,3 +18,7 @@ def cmsHome():
 @app.route('/cmsEvents/')
 def cmsEvents():
     return render_template('cmsEvents.html')
+
+@app.route('/editEvent/')
+def editEvent():
+    return render_template('editEvent.html')
