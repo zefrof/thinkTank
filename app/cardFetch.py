@@ -1,4 +1,4 @@
-import threading, time, requests
+import threading, time, requests, json
 from classes import Thread
 
 threadLimiter = threading.BoundedSemaphore(4)
@@ -27,6 +27,15 @@ def main():
         print("!!! Opening the file failed")
 
     for i in range(0, 10):
+
+        s = line.strip()
+        if s[-1:] is ",":
+            s = s[:-1]
+
+        try:
+            data = json.loads(s)
+        except:
+            continue
 
 
         threadX = Thread(i, "Thread-" + str(i), i)
