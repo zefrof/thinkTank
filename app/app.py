@@ -10,3 +10,8 @@ def home():
 @app.route('/deck/<id>')
 def deck(id = None):
     return render_template('deck.html', id = id)
+
+@app.route('/event/')
+@app.route('/event/<id>')
+def deck(id = None):
+    return render_template('event.html', id = id)
