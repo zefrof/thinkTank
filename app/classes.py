@@ -3,20 +3,14 @@ import threading, time
 threadLimiter = threading.BoundedSemaphore(4)
 
 class Thread(threading.Thread):
-    def __init__(self, threadID, name, counter, json):
+    def __init__(self, threadId, json):
         threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
+        self.threadId = threadId
         self.json = json
     def run(self):
         threadLimiter.acquire()
 
-        print("Starting " + self.name)
-
-        self.printJson(self.name, self.counter, 1, self.json)
-
-        print("Exiting " + self.name)
+        print(self.json['name'])
 
         threadLimiter.release()
 

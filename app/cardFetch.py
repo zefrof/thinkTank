@@ -1,4 +1,4 @@
-import time, requests, json
+import time, requests, json, ijson
 from classes import Thread
 
 def download_file(url):
@@ -20,27 +20,35 @@ def main():
     threads = []
 
     try:
-        fd = open(bulkFile, "r")
+        fd = open(bulkFile, "r", encoding="utf8")
+        print("### File downloaded and opened")
     except:
         print("!!! Opening the file failed")
+
+    objects = ijson.items(fd, 'item')
 
     i = 0
     fd.readline()
     for line in fd:
         s = line.strip()
-        #if s[-1:] is ",":
-        #    s = s[:-1]
+        if s[-1:] is ",":
+            s = s[:-1]
 
         try:
             data = json.loads(s)
-        except:
-            continue
+        except Exception as e:
+            print(e)
 
-        threadX = Thread(i, "Thread-" + str(i), 1, data)
+        #print(data)
+
+        threadX = Thread(i, data)
         threads.append(threadX)
         threadX.start()
 
         i += 1
+
+        if i == 3:
+            break
 
     for t in threads:
         t.join()
