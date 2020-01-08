@@ -24,11 +24,10 @@ class Card:
     relaseDate = ""
     layout = ""
     manaCost = ""
-    cmc = 0
+    cmc = 0.0
     typeLine = ""
     oracleText = ""
     flavorText = ""
-    typeLine = ""
     power = ""
     toughness = ""
     colors = []
@@ -52,7 +51,38 @@ class Card:
         pass
 
     def setCard(self, json):
-        print(json)
+        self.scryfallId = json['id']
+        self.tcgplayerId = json['tcgplayer_id']
+        self.name = json['name']
+        self.relaseDate = json['released_at']
+        self.layout = json['layout']
+        self.manaCost = json['mana_cost']
+        self.cmc = json['cmc']
+        self.typeLine = json['type_line']
+        self.oracleText = json['oracle_text']
+        self.flavorText = json['flavor_text']
+        self.power = json['power']
+        self.toughness = json['toughness']
+
+        self.colors
+        self.colorIden
+        self.legalities
+
+        self.reserve = json['reserve']
+        self.foil = json['foil']
+        self.nonfoil = json['nonfoil']
+        self.oversized = json['oversized']
+        self.promo = json['promo']
+        self.reprint = json['reprint']
+        self.mtgSet = json['set_name']
+        self.setCode = json['set']
+        self.collectorNumber = json['collector_number']
+        self.rarity = json['rarity']
+        self.watermark = json['watermark']
+
+        self.curPrice
+
+        print(json['name'])
 
     def getCard(self):
         pass
