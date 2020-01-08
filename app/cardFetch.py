@@ -1,7 +1,5 @@
-import threading, time, requests, json
+import time, requests, json
 from classes import Thread
-
-threadLimiter = threading.BoundedSemaphore(4)
 
 def download_file(url):
     local_filename = url.split('/')[-1]
@@ -22,25 +20,27 @@ def main():
     threads = []
 
     try:
-        f = open(bulkFile, "r")
+        fd = open(bulkFile, "r")
     except:
         print("!!! Opening the file failed")
 
-    for i in range(0, 10):
-
+    i = 0
+    fd.readline()
+    for line in fd:
         s = line.strip()
-        if s[-1:] is ",":
-            s = s[:-1]
+        #if s[-1:] is ",":
+        #    s = s[:-1]
 
         try:
             data = json.loads(s)
         except:
             continue
 
-
-        threadX = Thread(i, "Thread-" + str(i), i)
+        threadX = Thread(i, "Thread-" + str(i), 1, data)
         threads.append(threadX)
         threadX.start()
+
+        i += 1
 
     for t in threads:
         t.join()
