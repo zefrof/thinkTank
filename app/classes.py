@@ -15,40 +15,42 @@ class Thread(threading.Thread):
         card = Card()
         card.setCard(self.json)
 
+        print(self.threadId)
+
         threadLimiter.release()
 
 class Card:
-    scryfallId = ""
-    tcgplayerId = 0
-    name = ""
-    relaseDate = ""
-    layout = ""
-    manaCost = ""
-    cmc = 0.0
-    typeLine = ""
-    oracleText = ""
-    flavorText = ""
-    power = ""
-    toughness = ""
-    colors = []
-    colorIden = []
-    legalities = []
-    reserve = 0
-    foil = 0
-    nonfoil = 0
-    oversized = 0
-    promo = 0
-    reprint = 0
-    variation = 0
-    mtgSet = ""
-    setCode = ""
-    collectorNumber = ""
-    rarity = ""
-    watermark = ""
-    curPrice = ""
 
     def __init__(self):
-        pass
+        scryfallId = ""
+        tcgplayerId = 0
+        name = ""
+        relaseDate = ""
+        layout = ""
+        manaCost = ""
+        cmc = 0.0
+        typeLine = ""
+        oracleText = ""
+        flavorText = ""
+        power = ""
+        toughness = ""
+        colors = []
+        colorIden = []
+        legalities = []
+        reserved = 0
+        foil = 0
+        nonfoil = 0
+        oversized = 0
+        promo = 0
+        reprint = 0
+        variation = 0
+        mtgSet = ""
+        setCode = ""
+        collectorNumber = ""
+        rarity = ""
+        watermark = ""
+        curPrice = ""
+        curFoilPrice = ""
 
     def setCard(self, json):
         self.scryfallId = json['id']
@@ -60,15 +62,34 @@ class Card:
         self.cmc = json['cmc']
         self.typeLine = json['type_line']
         self.oracleText = json['oracle_text']
-        self.flavorText = json['flavor_text']
-        self.power = json['power']
-        self.toughness = json['toughness']
+        try:
+            self.flavorText = json['flavor_text']
+        except:
+            pass
 
-        self.colors
-        self.colorIden
-        self.legalities
+        try:
+            self.power = json['power']
+        except:
+            pass
 
-        self.reserve = json['reserve']
+        try:
+            self.toughness = json['toughness']
+        except:
+            pass
+
+        #self.colors.clear()
+        for c in json['colors']:
+            self.colors.append(c)
+
+        #self.colorIden.clear()
+        #for c in json['color_identity']:
+        #    self.colorIden.append(c)
+
+        #self.legalities.clear()
+        #for c in json['legalities']:
+        #    self.legalities.append(c)
+
+        self.reserved = json['reserved']
         self.foil = json['foil']
         self.nonfoil = json['nonfoil']
         self.oversized = json['oversized']
@@ -78,17 +99,25 @@ class Card:
         self.setCode = json['set']
         self.collectorNumber = json['collector_number']
         self.rarity = json['rarity']
-        self.watermark = json['watermark']
 
-        self.curPrice
+        try:
+            self.watermark = json['watermark']
+        except:
+            pass
 
-        print(json['name'])
+        #self.curPrice = json['prices']['usd']
+        #self.curFoilPrice = json['prices']['usd_foil']
+
+        print(self.colors)
 
     def getCard(self):
         pass
 
     def commitCard(self):
         pass
+
+    def toString(self):
+        return ""
 
 class Deck:
     name = ""
