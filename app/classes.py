@@ -1,4 +1,4 @@
-import threading, time
+import threading, time, json, requests
 
 threadLimiter = threading.BoundedSemaphore(4)
 
@@ -22,35 +22,49 @@ class Thread(threading.Thread):
 class Card:
 
     def __init__(self):
-        scryfallId = ""
-        tcgplayerId = 0
-        name = ""
-        relaseDate = ""
-        layout = ""
-        manaCost = ""
-        cmc = 0.0
-        typeLine = ""
-        oracleText = ""
-        flavorText = ""
-        power = ""
-        toughness = ""
-        colors = []
-        colorIden = []
-        legalities = []
-        reserved = 0
-        foil = 0
-        nonfoil = 0
-        oversized = 0
-        promo = 0
-        reprint = 0
-        variation = 0
-        mtgSet = ""
-        setCode = ""
-        collectorNumber = ""
-        rarity = ""
-        watermark = ""
-        curPrice = ""
-        curFoilPrice = ""
+        self.scryfallId = ""
+        self.tcgplayerId = 0
+        self.name = ""
+        self.relaseDate = ""
+        self.layout = ""
+        self.manaCost = ""
+        self.cmc = 0.0
+        self.typeLine = ""
+        self.oracleText = ""
+        self.flavorText = ""
+        self.power = ""
+        self.toughness = ""
+        self.colors = []
+        self.colorIden = []
+        self.legalities = {
+            "standard" : "",
+            "future" : "",
+            "historic" : "",
+            "pioneer" : "",
+            "modern" : "",
+            "legacy" : "",
+            "pauper" : "",
+            "vintage" : "",
+            "penny" : "",
+            "commander" : "",
+            "brawl" : "",
+            "duel" : "",
+            "oldschool" : ""
+        }
+        self.reserved = 0
+        self.foil = 0
+        self.nonfoil = 0
+        self.oversized = 0
+        self.promo = 0
+        self.reprint = 0
+        self.variation = 0
+        self.mtgSet = ""
+        self.setCode = ""
+        self.collectorNumber = ""
+        self.rarity = ""
+        self.watermark = ""
+        self.curPrice = ""
+        self.curFoilPrice = ""
 
     def setCard(self, json):
         self.scryfallId = json['id']
@@ -77,17 +91,13 @@ class Card:
         except:
             pass
 
-        #self.colors.clear()
         for c in json['colors']:
             self.colors.append(c)
 
-        #self.colorIden.clear()
-        #for c in json['color_identity']:
-        #    self.colorIden.append(c)
+        for c in json['color_identity']:
+            self.colorIden.append(c)
 
-        #self.legalities.clear()
-        #for c in json['legalities']:
-        #    self.legalities.append(c)
+        self.setLegalities(json['legalities'])
 
         self.reserved = json['reserved']
         self.foil = json['foil']
@@ -108,13 +118,59 @@ class Card:
         #self.curPrice = json['prices']['usd']
         #self.curFoilPrice = json['prices']['usd_foil']
 
-        print(self.colors)
+        try:
+            if len(json['card_faces']) > 0:
+                print("this car has faces yo")
+        except:
+            print("no faces yo?")
 
-    def getCard(self):
+        print(self.legalities['vintage'])
+
+    def getCard(self, id):
         pass
 
     def commitCard(self):
         pass
+
+    def setLegalities(self, json):
+        self.legalities['standard'] = json['standard']
+        self.legalities['future'] = json['future']
+        self.legalities['historic'] = json['historic']
+        self.legalities['pioneer'] = json['pioneer']
+        self.legalities['modern'] = json['modern']
+        self.legalities['legacy'] = json['legacy']
+        self.legalities['pauper'] = json['pauper']
+        self.legalities['vintage'] = json['vintage']
+        self.legalities['penny'] = json['penny']
+        self.legalities['commander'] = json['commander']
+        self.legalities['brawl'] = json['brawl']
+        self.legalities['duel'] = json['duel']
+        self.legalities['oldschool'] = json['oldschool']
+
+    def setPrice(self):
+        #Get auth token from TCGPlayer
+        bearer = requests.post("https://api.tcgplayer.com/token",
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": "A7A184B3-923E-49EC-900F-204016D37EE2",
+                "client_secret": "646E7BEC-556B-45EF-8746-3ADCF32FAB49",
+            })
+        token = bearer.json()
+
+        try:
+            tcgplayerId = '125843'
+
+            url = "https://api.tcgplayer.com/v1.27.0/pricing/product/" + tcgplayerId
+            r = requests.get(url, headers = {'Authorization' : "Bearer " + token['access_token'],})
+            priceData = json.loads(r.text)
+
+            #print(r.text)
+
+            print(priceData)
+
+        except Exception as e:
+            print(e)
+
 
     def toString(self):
         return ""

@@ -1,13 +1,13 @@
-import time, requests, json, ijson
+import requests, json
 from classes import Thread
 
-def download_file(url):
+def downloadFile(url):
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter below
-    with requests.get(url, stream=True) as r:
+    with requests.get(url, stream = True) as r:
         r.raise_for_status()
         with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
+            for chunk in r.iter_content(chunk_size = 8192):
                 if chunk: # filter out keep-alive new chunks
                     f.write(chunk)
                     # f.flush()
@@ -16,7 +16,7 @@ def download_file(url):
 
 def main():
 
-    bulkFile = download_file("https://archive.scryfall.com/json/scryfall-default-cards.json")
+    bulkFile = downloadFile("https://archive.scryfall.com/json/scryfall-default-cards.json")
     threads = []
 
     try:
@@ -24,8 +24,6 @@ def main():
         print("### File downloaded and opened")
     except:
         print("!!! Opening the file failed")
-
-    objects = ijson.items(fd, 'item')
 
     i = 0
     fd.readline()
