@@ -34,6 +34,7 @@ class Card:
         self.flavorText = ""
         self.power = ""
         self.toughness = ""
+        self.loyalty = ""
         self.colors = []
         self.colorIden = []
         self.legalities = {
@@ -63,19 +64,37 @@ class Card:
         self.collectorNumber = ""
         self.rarity = ""
         self.watermark = ""
+        self.artist = ""
         self.curPrice = ""
         self.curFoilPrice = ""
 
+        self.faces = []
+
     def setCard(self, json):
         self.scryfallId = json['id']
-        self.tcgplayerId = json['tcgplayer_id']
+
+        try:
+            self.tcgplayerId = json['tcgplayer_id']
+        except:
+            pass
+
         self.name = json['name']
         self.relaseDate = json['released_at']
         self.layout = json['layout']
-        self.manaCost = json['mana_cost']
+
+        try:
+            self.manaCost = json['mana_cost']
+        except:
+            pass
+
         self.cmc = json['cmc']
         self.typeLine = json['type_line']
-        self.oracleText = json['oracle_text']
+
+        try:
+            self.oracleText = json['oracle_text']
+        except:
+            pass
+
         try:
             self.flavorText = json['flavor_text']
         except:
@@ -91,8 +110,16 @@ class Card:
         except:
             pass
 
-        for c in json['colors']:
-            self.colors.append(c)
+        try:
+            self.loyalty = json['loyalty']
+        except:
+            pass
+
+        try:
+            for c in json['colors']:
+                self.colors.append(c)
+        except:
+            pass
 
         for c in json['color_identity']:
             self.colorIden.append(c)
@@ -105,6 +132,7 @@ class Card:
         self.oversized = json['oversized']
         self.promo = json['promo']
         self.reprint = json['reprint']
+        self.variation = json['variation']
         self.mtgSet = json['set_name']
         self.setCode = json['set']
         self.collectorNumber = json['collector_number']
@@ -115,16 +143,22 @@ class Card:
         except:
             pass
 
-        #self.curPrice = json['prices']['usd']
-        #self.curFoilPrice = json['prices']['usd_foil']
+        self.artist = json['artist']
+
+        if self.tcgplayerId != "":
+            self.setPrice(self.tcgplayerId)
 
         try:
             if len(json['card_faces']) > 0:
-                print("this car has faces yo")
-        except:
-            print("no faces yo?")
+                for f in json['card_faces']:
+                    face = Face()
+                    face.setFace(f)
+                    self.faces.append(face)
+        except Exception as e:
+            print(e)
 
-        print(self.legalities['vintage'])
+        for obj in self.faces:
+            print(obj.name)
 
     def getCard(self, id):
         pass
@@ -147,7 +181,7 @@ class Card:
         self.legalities['duel'] = json['duel']
         self.legalities['oldschool'] = json['oldschool']
 
-    def setPrice(self):
+    def setPrice(self, id):
         #Get auth token from TCGPlayer
         bearer = requests.post("https://api.tcgplayer.com/token",
             data = {
@@ -158,22 +192,88 @@ class Card:
         token = bearer.json()
 
         try:
-            tcgplayerId = '125843'
+            #id = '125843'
 
-            url = "https://api.tcgplayer.com/v1.27.0/pricing/product/" + tcgplayerId
+            url = "https://api.tcgplayer.com/v1.27.0/pricing/product/" + str(id)
             r = requests.get(url, headers = {'Authorization' : "Bearer " + token['access_token'],})
             priceData = json.loads(r.text)
 
             #print(r.text)
 
-            print(priceData)
+            #print(priceData)
 
-        except Exception as e:
-            print(e)
+            if priceData['success'] == True:
+                for result in priceData['results']:
+                    if result['marketPrice'] != None:
+                        if result['subTypeName'] == "Foil":
+                            self.curFoilPrice = result['marketPrice']
+                        else:
+                            self.curPrice = result['marketPrice']
+
+        except:
+            pass
 
 
     def toString(self):
         return ""
+
+class Face:
+    def __init__(self):
+        self.name = ""
+        self.manaCost = ""
+        self.typeLine = ""
+        self.oracleText = ""
+        self.flavorText = ""
+        self.colors = []
+        self.power = ""
+        self.toughness = ""
+        self.loyalty = ""
+        self.artist = ""
+
+    def setFace(self, json):
+        self.name = json['name']
+        self.manaCost = json['mana_cost']
+        self.typeLine = json['type_line']
+        self.oracleText = json['oracle_text']
+
+        try:
+            self.flavorText = json['flavor_text']
+        except:
+            pass
+
+        try:
+            for c in json['colors']:
+                self.colors.append(c)
+        except:
+            pass
+
+        try:
+            self.power = json['power']
+        except:
+            pass
+
+        try:
+            self.toughness = json['toughness']
+        except:
+            pass
+
+        try:
+            self.loyalty = json['loyalty']
+        except:
+            pass
+
+        try:
+            self.artist = json['artist']
+        except:
+            pass
+
+    def commitFace(self, cardId):
+        pass
+
+    def toString(self):
+        return 'Its a string'
+
+        #'{"name":"%s", "manaCost":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "colors":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "artist":"%s"}' % (self.name, self.manaCost, self.typeLine, self.oracleText, self.flavorText, str(self.colors), self.power, self.toughness, self.loyalty, self.artist)
 
 class Deck:
     name = ""

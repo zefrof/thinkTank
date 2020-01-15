@@ -16,7 +16,8 @@ def downloadFile(url):
 
 def main():
 
-    bulkFile = downloadFile("https://archive.scryfall.com/json/scryfall-default-cards.json")
+    #bulkFile = downloadFile("https://archive.scryfall.com/json/scryfall-default-cards.json")
+    bulkFile = "testFile.json"
     threads = []
 
     try:
@@ -45,8 +46,8 @@ def main():
 
         i += 1
 
-        if i == 3:
-            break
+        #if i == 3:
+        #    break
 
     for t in threads:
         t.join()
