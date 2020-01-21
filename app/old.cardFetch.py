@@ -17,7 +17,7 @@ def main():
     #TRUNCATE TABLE cardFaceToCard;
     #TRUNCATE TABLE cardFace;
 
-    #https://api.scryfall.com/cards/search?order=cmc&q=c%3Ared+pow%3D3 
+    #https://api.scryfall.com/cards/search?order=cmc&q=c%3Ared+pow%3D3
 
     fd = open("scryfall-default-cards.json", "r")
 
@@ -30,7 +30,7 @@ def main():
         })
     token = bearer.json()
 
-    con = pymysql.connect('localhost', 'zefrof', 'bop4YTNs', 'magicTCG')
+    con = pymysql.connect('localhost', 'zefrof', 'bop4YTNs', 'magic ')
     cur = con.cursor()
 
     #count = 0
@@ -111,7 +111,7 @@ def main():
                                     cur.execute("UPDATE cards SET dateModified = %s WHERE id = %s", (int(time.time()), fetch[0]))
 
                     except Exception:
-                        pass  
+                        pass
             else:
 
                 try:
@@ -269,7 +269,7 @@ def main():
                 #See if the set exists. If it doesn't make it and connect card. If it does connect card
                 cur.execute("SELECT id, dateModified FROM cards ORDER BY id DESC LIMIT 1")
                 fetch = cur.fetchone()
-                
+
                 cur.execute("SELECT id FROM sets WHERE setCode = %s", (data['set']))
 
                 if cur.rowcount == 0:

@@ -1,4 +1,4 @@
-import threading, time, json, requests
+import threading, time, json, requests, pymysql
 
 threadLimiter = threading.BoundedSemaphore(4)
 
@@ -25,7 +25,7 @@ class Card:
         self.scryfallId = ""
         self.tcgplayerId = 0
         self.name = ""
-        self.relaseDate = ""
+        self.releaseDate = ""
         self.layout = ""
         self.manaCost = ""
         self.cmc = 0.0
@@ -65,8 +65,10 @@ class Card:
         self.rarity = ""
         self.watermark = ""
         self.artist = ""
+        self.textless = 0
         self.curPrice = ""
         self.curFoilPrice = ""
+        self.imageUrl = " "
 
         self.faces = []
 
@@ -79,7 +81,7 @@ class Card:
             pass
 
         self.name = json['name']
-        self.relaseDate = json['released_at']
+        self.releaseDate = json['released_at']
         self.layout = json['layout']
 
         try:
@@ -145,8 +147,18 @@ class Card:
 
         self.artist = json['artist']
 
+        try:
+            self.textless = json['textless']
+        except:
+            pass
+
         if self.tcgplayerId != "":
             self.setPrice(self.tcgplayerId)
+
+        try:
+            self.imageUrl = json['image_uris']['normal']
+        except:
+            pass
 
         try:
             if len(json['card_faces']) > 0:
@@ -161,7 +173,48 @@ class Card:
         pass
 
     def commitCard(self):
-        pass
+        dbm = Database()
+
+        with dbm.con:
+            dbm.cur.execute("SELECT c.id, c.dateModified FROM cards c WHERE c.id = %s", (self.scryfallId, ))
+
+            #Card already exists
+            if cur.rowcount == 1:
+                fetch = dbm.cur.fetchone()
+
+                #If it's been a month since last update
+                if fetch[1] < (int(time.time()) - 2629800):
+                    dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s, dateModified = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time()), self.scryfallId))
+
+                    commitLegalities()
+                    commitPrice()
+                    commitImage()
+
+
+
+            #Card doesn't exist
+            else:
+                dbm.cur.execute("INSERT INTO cards (id, name, releaseDate, layout, manaCost, cmc, typeLine, oracleText, flavorText, power, toughness, loyalty, reserved, foil, nonfoil, oversized, promo, reprint, variation, collectorNumber, rarity, watermark, artist, textless, dateAdded) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.scryfallId, self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time())))
+
+                commitLegalities()
+                commitPrice()
+                commitImage()
+
+    def commitImage(self):
+        dbm = Database()
+        dbm.cur.execute("SELECT m.id, m.dateAdded FROM media AS m JOIN mediaToCard AS mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
+
+        if dbm.cur.rowcount == 1:
+            fetch = dbm.cur.fetchone()
+            if fetch[1] < (int(time.time()) - 7889400):
+                dbm.cur.execute("UPDATE media SET mediaUrl = %s WHERE id = %s", (self.imageUrl, fetch[0]))
+        else:
+            dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet))
+            mediaId = cur.fetchone()
+            cur.execute("INSERT INTO mediaToCard (mediaId, cardId, displayOrder) VALUES (%s, %s, 1)", (mediaId[0], self.scryfallId))
+
+    def commitSet(self):
+
 
     def setLegalities(self, json):
         self.legalities['standard'] = json['standard']
@@ -177,6 +230,24 @@ class Card:
         self.legalities['brawl'] = json['brawl']
         self.legalities['duel'] = json['duel']
         self.legalities['oldschool'] = json['oldschool']
+
+    def commitLegalities(self):
+        dbm = Database()
+
+        dbm.cur.execute("DELETE FROM cardToFormat WHERE cardId = %s", (self.scryfallId)
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 1, %s)", (self.scryfallId, self.legalities['standard']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 2, %s)", (self.scryfallId, self.legalities['future']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 2, %s)", (self.scryfallId, self.legalities['historic']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['pioneer']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['modern']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['legacy']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['pauper']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['vintage']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['penny']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['commander']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['brawl']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['duel']))
+        dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 3, %s)", (self.scryfallId, self.legalities['oldschool']))
 
     def setPrice(self, id):
         #Get auth token from TCGPlayer
@@ -210,9 +281,15 @@ class Card:
         except:
             pass
 
+    def commitPrice(self):
+        dbm = Database()
+
+        cur.execute("INSERT INTO prices (price, currency, foil, dateAdded) VALUES (%s, 'dollars', %s, %s)", (self.curPrice, self.curFoilPrice, int(time.time())))
+        curPrice = cur.lastrowid
+        cur.execute("INSERT INTO cardToPrice (cardId, priceId) VALUES (%s, %s)", (self.scryfallId, curPrice))
 
     def toString(self):
-        return '{"name":"%s", "releaseDate":"%s", "layout":"%s", "manaCost":"%s", "cmc":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "colors":"%s", "colorIdentity":"%s", "legalities":"%s", "reserved":"%s", "foil":"%s", "nonfoil":"%s", "oversized":"%s", "promo":"%s", "reprint":"%s", "variation":"%s", "mtgSet":"%s", "setCode":"%s", "collectorNumber":"%s", "rarity":"%s", "watermark":"%s", "artist":"%s", "curPrice":"%s", "curFoilPrice":"%s"}' % (self.name, self.relaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, str(self.colors), str(self.colorIden), str(self.legalities), self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.mtgSet, self.setCode, self.collectorNumber, self.rarity, self.watermark, self.artist, self.curPrice, self.curFoilPrice)
+        return '{"name":"%s", "releaseDate":"%s", "layout":"%s", "manaCost":"%s", "cmc":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "colors":"%s", "colorIdentity":"%s", "legalities":"%s", "reserved":"%s", "foil":"%s", "nonfoil":"%s", "oversized":"%s", "promo":"%s", "reprint":"%s", "variation":"%s", "mtgSet":"%s", "setCode":"%s", "collectorNumber":"%s", "rarity":"%s", "watermark":"%s", "artist":"%s", "curPrice":"%s", "curFoilPrice":"%s"}' % (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, str(self.colors), str(self.colorIden), str(self.legalities), self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.mtgSet, self.setCode, self.collectorNumber, self.rarity, self.watermark, self.artist, self.curPrice, self.curFoilPrice)
 
 class Face:
     def __init__(self):
@@ -280,3 +357,8 @@ class Event:
     name = ""
     date = ""
     location = ""
+
+class Database:
+    def __init__(self):
+        self.con = pymysql.connect('localhost', 'zefrof', 'hYbGFkPCgw@a', 'magic')
+        self.cur = con.cursor()
