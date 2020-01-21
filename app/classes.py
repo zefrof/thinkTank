@@ -14,6 +14,7 @@ class Thread(threading.Thread):
 
         card = Card()
         card.setCard(self.json)
+        print("Foil: %d" % card.foil)
         card.commitCard()
 
         print(self.threadId)
@@ -131,8 +132,17 @@ class Card:
         self.setLegalities(json['legalities'])
 
         self.reserved = json['reserved']
-        self.foil = json['foil']
-        self.nonfoil = json['nonfoil']
+
+        if json['foil'] == False:
+            self.foil = 0
+        else:
+            self.foil = 1
+
+        if json['nonfoil'] == False:
+            self.nonfoil = 0
+        else:
+            self.nonfoil = 1
+
         self.oversized = json['oversized']
         self.promo = json['promo']
         self.reprint = json['reprint']
@@ -201,7 +211,6 @@ class Card:
 
             #Card doesn't exist
             else:
-                print("Card doesn't exist")
                 dbm.cur.execute("INSERT INTO cards (id, name, releaseDate, layout, manaCost, cmc, typeLine, oracleText, flavorText, power, toughness, loyalty, reserved, foil, nonfoil, oversized, promo, reprint, variation, collectorNumber, rarity, watermark, artist, textless, dateAdded) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.scryfallId, self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time())))
 
                 self.commitLegalities(dbm)
@@ -220,16 +229,18 @@ class Card:
 
     def commitImage(self, dbm):
 
-        dbm.cur.execute("SELECT m.id, m.dateAdded FROM media m JOIN mediaToCard mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
+        if self.imageUrl != "":
 
-        if dbm.cur.rowcount == 1:
-            fetch = dbm.cur.fetchone()
-            if fetch[1] < (int(time.time()) - 7889400):
-                dbm.cur.execute("UPDATE media SET mediaUrl = %s WHERE id = %s", (self.imageUrl, fetch[0]))
-        else:
-            dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet))
-            mediaId = dbm.cur.lastrowid
-            dbm.cur.execute("INSERT INTO mediaToCard (mediaId, cardId) VALUES (%s, %s)", (mediaId, self.scryfallId))
+            dbm.cur.execute("SELECT m.id, m.dateAdded FROM media m JOIN mediaToCard mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
+
+            if dbm.cur.rowcount == 1:
+                fetch = dbm.cur.fetchone()
+                if fetch[1] < (int(time.time()) - 7889400):
+                    dbm.cur.execute("UPDATE media SET mediaUrl = %s WHERE id = %s", (self.imageUrl, fetch[0]))
+            else:
+                dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet))
+                mediaId = dbm.cur.lastrowid
+                dbm.cur.execute("INSERT INTO mediaToCard (mediaId, cardId) VALUES (%s, %s)", (mediaId, self.scryfallId))
 
     def commitSet(self, dbm):
         #See if the set exists. If it doesn't make it and connect card. If it does connect card
@@ -407,9 +418,10 @@ class Face:
             dbm.cur.execute("INSERT INTO cardFaceToColor (cardFaceId, colorId) VALUES (%s, %s)", (id, colorId))
 
     def commitFaceImage(self, id, dbm):
-        dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name))
-        mediaId = dbm.cur.lastrowid
-        dbm.cur.execute("INSERT INTO cardFaceToMedia (cardFaceId, mediaId) VALUES (%s, %s)", (id, mediaId))
+        if self.imageUrl != "":
+            dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name))
+            mediaId = dbm.cur.lastrowid
+            dbm.cur.execute("INSERT INTO cardFaceToMedia (cardFaceId, mediaId) VALUES (%s, %s)", (id, mediaId))
 
     def toString(self):
         return '{"name":"%s", "manaCost":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "colors":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "artist":"%s"}' % (self.name, self.manaCost, self.typeLine, self.oracleText, self.flavorText, str(self.colors), self.power, self.toughness, self.loyalty, self.artist)
