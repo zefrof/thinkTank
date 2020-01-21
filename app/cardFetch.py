@@ -1,6 +1,20 @@
 import requests, json
 from classes import Thread
 
+#TRUNCATE TABLE `prices`;
+#TRUNCATE TABLE mediaToCard;
+#TRUNCATE TABLE media;
+#TRUNCATE TABLE cardToSet;
+#TRUNCATE TABLE cardToPrice;
+#TRUNCATE TABLE cardToFormat;
+#TRUNCATE TABLE cardToColorIdentity;
+#TRUNCATE TABLE cardToColor;
+#TRUNCATE TABLE cards;
+#TRUNCATE TABLE cardFaceToCard;
+#TRUNCATE TABLE cardFace;
+#TRUNCATE TABLE cardFaceToColor;
+#TRUNCATE TABLE cardFaceToMedia;
+
 def downloadFile(url):
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter below
@@ -32,6 +46,9 @@ def main():
         s = line.strip()
         if s[-1:] is ",":
             s = s[:-1]
+
+        if s is "]":
+            break
 
         try:
             data = json.loads(s)
