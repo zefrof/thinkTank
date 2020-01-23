@@ -1,19 +1,5 @@
 import requests, json
-from classes import Thread
-
-#TRUNCATE TABLE `prices`;
-#TRUNCATE TABLE mediaToCard;
-#TRUNCATE TABLE media;
-#TRUNCATE TABLE cardToSet;
-#TRUNCATE TABLE cardToPrice;
-#TRUNCATE TABLE cardToFormat;
-#TRUNCATE TABLE cardToColorIdentity;
-#TRUNCATE TABLE cardToColor;
-#TRUNCATE TABLE cards;
-#TRUNCATE TABLE cardFaceToCard;
-#TRUNCATE TABLE cardFace;
-#TRUNCATE TABLE cardFaceToColor;
-#TRUNCATE TABLE cardFaceToMedia;
+from classes import Card
 
 def downloadFile(url):
     local_filename = url.split('/')[-1]
@@ -30,8 +16,8 @@ def downloadFile(url):
 
 def main():
 
-    #bulkFile = downloadFile("https://archive.scryfall.com/json/scryfall-default-cards.json")
-    bulkFile = "testFile.json"
+    bulkFile = downloadFile("https://archive.scryfall.com/json/scryfall-default-cards.json")
+    #bulkFile = "testFile.json"
     threads = []
 
     try:
@@ -40,7 +26,6 @@ def main():
     except:
         print("!!! Opening the file failed")
 
-    i = 0
     fd.readline()
     for line in fd:
         s = line.strip()
@@ -55,21 +40,11 @@ def main():
         except Exception as e:
             print(e)
 
-        #print(data)
+        card = Card()
+        card.setCard(data)
+        card.commitCard()
 
-        threadX = Thread(i, data)
-        threads.append(threadX)
-        threadX.start()
-
-        i += 1
-
-        #if i == 3:
-        #    break
-
-    for t in threads:
-        t.join()
-
-    print("exiting main()")
+    print("Done")
 
 if __name__== "__main__":
   main()

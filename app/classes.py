@@ -1,25 +1,4 @@
-import threading, time, json, requests, pymysql
-
-threadLimiter = threading.BoundedSemaphore(1)
-
-class Thread(threading.Thread):
-    def __init__(self, threadId, json):
-        threading.Thread.__init__(self)
-        self.threadId = threadId
-        self.json = json
-    def run(self):
-        threadLimiter.acquire()
-
-        #print(self.json['name'])
-
-        card = Card()
-        card.setCard(self.json)
-        print("Foil: %d" % card.foil)
-        card.commitCard()
-
-        print(self.threadId)
-
-        threadLimiter.release()
+import time, json, requests, pymysql
 
 class Card:
 
@@ -69,9 +48,9 @@ class Card:
         self.watermark = ""
         self.artist = ""
         self.textless = 0
-        self.curPrice = ""
-        self.curFoilPrice = ""
-        self.imageUrl = " "
+        self.curPrice = 0.0
+        self.curFoilPrice = 0.0
+        self.imageUrl = ""
 
         self.faces = []
 
@@ -184,8 +163,8 @@ class Card:
                     face = Face()
                     face.setFace(f)
                     self.faces.append(face)
-        except Exception as e:
-            print(e)
+        except:
+            pass
 
     def getCard(self, id):
         pass
@@ -204,10 +183,10 @@ class Card:
                 if fetch[1] < (int(time.time()) - 2629800):
                     dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s, dateModified = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time()), self.scryfallId))
 
-                    self.commitLegalities()
-                    self.commitImage()
+                    self.commitLegalities(dbm)
+                    self.commitImage(dbm)
 
-                self.commitPrice()
+                self.commitPrice(dbm)
 
             #Card doesn't exist
             else:
@@ -332,7 +311,7 @@ class Card:
                             self.curPrice = result['marketPrice']
 
         except:
-            pass
+            print("!!! No price data for: %s from %s" % self.name, self.setCode)
 
     def commitPrice(self, dbm):
 
