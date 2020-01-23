@@ -181,6 +181,8 @@ class Card:
 
                 #If it's been a month since last update
                 if fetch[1] < (int(time.time()) - 2629800):
+                    print("Updating %s from %s" % (self.name, self.setCode))
+
                     dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s, dateModified = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time()), self.scryfallId))
 
                     self.commitLegalities(dbm)
@@ -311,7 +313,7 @@ class Card:
                             self.curPrice = result['marketPrice']
 
         except:
-            print("!!! No price data for: %s from %s" % self.name, self.setCode)
+            print("!!! No price data for: %s from %s" % (self.name, self.setCode))
 
     def commitPrice(self, dbm):
 
