@@ -304,9 +304,10 @@ class Card:
 
     def commitPrice(self, dbm):
 
-        dbm.cur.execute("INSERT INTO prices (price, currency, foil, dateAdded) VALUES (%s, 'dollars', %s, %s)", (self.curPrice, self.curFoilPrice, int(time.time())))
-        curPrice = dbm.cur.lastrowid
-        dbm.cur.execute("INSERT INTO cardToPrice (cardId, priceId) VALUES (%s, %s)", (self.scryfallId, curPrice))
+        if self.curPrice != 0 and self.curFoilPrice != 0:
+            dbm.cur.execute("INSERT INTO prices (price, foilPrice, currency, dateAdded) VALUES (%s, %s, 'dollars', %s)", (self.curPrice, self.curFoilPrice, int(time.time())))
+            curPrice = dbm.cur.lastrowid
+            dbm.cur.execute("INSERT INTO cardToPrice (cardId, priceId) VALUES (%s, %s)", (self.scryfallId, curPrice))
 
     def toString(self):
         return '{"name":"%s", "releaseDate":"%s", "layout":"%s", "manaCost":"%s", "cmc":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "colors":"%s", "colorIdentity":"%s", "legalities":"%s", "reserved":"%s", "foil":"%s", "nonfoil":"%s", "oversized":"%s", "promo":"%s", "reprint":"%s", "variation":"%s", "mtgSet":"%s", "setCode":"%s", "collectorNumber":"%s", "rarity":"%s", "watermark":"%s", "artist":"%s", "curPrice":"%s", "curFoilPrice":"%s"}' % (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, str(self.colors), str(self.colorIden), str(self.legalities), self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.mtgSet, self.setCode, self.collectorNumber, self.rarity, self.watermark, self.artist, self.curPrice, self.curFoilPrice)
@@ -395,15 +396,21 @@ class Face:
         return '{"name":"%s", "manaCost":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "colors":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "artist":"%s"}' % (self.name, self.manaCost, self.typeLine, self.oracleText, self.flavorText, str(self.colors), self.power, self.toughness, self.loyalty, self.artist)
 
 class Deck:
-    name = ""
-    archetype = ""
-    pilot = ""
-    finish = 0
+
+    def __init__(self):
+        self.name = ""
+        self.pilot = ""
+        self.finish = ""
+
+        self.archetype = ""
 
 class Event:
-    name = ""
-    date = ""
-    location = ""
+
+    def __init__(self):
+        self.name = ""
+        self.date = ""
+        self.location = ""
+        self.source = ""
 
 class Database:
     def __init__(self):
