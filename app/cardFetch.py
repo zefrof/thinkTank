@@ -1,5 +1,5 @@
 import requests, json
-from classes import Card
+from classes import Card, Database
 
 def downloadFile(url):
     local_filename = url.split('/')[-1]
@@ -26,6 +26,9 @@ def main():
     except:
         print("!!! Opening the file failed")
 
+    #Connect to the database
+    dbm = Database()
+
     fd.readline()
     for line in fd:
         s = line.strip()
@@ -41,8 +44,9 @@ def main():
             print(e)
 
         card = Card()
-        card.setCard(data)
-        card.commitCard()
+        card.setCard(data, dbm)
+        card.commitCard(dbm)
+        del card
 
     print("Done")
 

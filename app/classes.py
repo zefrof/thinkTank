@@ -54,7 +54,7 @@ class Card:
 
         self.faces = []
 
-    def setCard(self, json):
+    def setCard(self, json, dbm):
         self.scryfallId = json['id']
 
         try:
@@ -150,7 +150,7 @@ class Card:
             pass
 
         if self.tcgplayerId != "":
-            self.setPrice(self.tcgplayerId)
+            self.setPrice(self.tcgplayerId, dbm.token)
 
         try:
             self.imageUrl = json['image_uris']['normal']
@@ -169,9 +169,7 @@ class Card:
     def getCard(self, id):
         pass
 
-    def commitCard(self):
-        dbm = Database()
-
+    def commitCard(self, dbm):
         with dbm.con:
             dbm.cur.execute("SELECT c.id, c.dateModified FROM cards c WHERE c.id = %s", (self.scryfallId, ))
 
@@ -205,8 +203,6 @@ class Card:
                 for f in self.faces:
                     f.commitFace(self.scryfallId, order, dbm)
                     order += 1
-
-        del dbm
 
     def commitImage(self, dbm):
 
@@ -283,16 +279,7 @@ class Card:
         dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 12, %s)", (self.scryfallId, self.legalities['duel']))
         dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 13, %s)", (self.scryfallId, self.legalities['oldschool']))
 
-    def setPrice(self, id):
-        #Get auth token from TCGPlayer
-        bearer = requests.post("https://api.tcgplayer.com/token",
-            data = {
-                "grant_type": "client_credentials",
-                "client_id": "A7A184B3-923E-49EC-900F-204016D37EE2",
-                "client_secret": "646E7BEC-556B-45EF-8746-3ADCF32FAB49",
-            })
-        token = bearer.json()
-
+    def setPrice(self, id, token):
         try:
             #id = '125843'
 
@@ -422,6 +409,15 @@ class Database:
     def __init__(self):
         self.con = pymysql.connect('localhost', 'zefrof', 'hYbGFkPCgw@a', 'magic')
         self.cur = self.con.cursor()
+
+        #Get auth token from TCGPlayer
+        bearer = requests.post("https://api.tcgplayer.com/token",
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": "A7A184B3-923E-49EC-900F-204016D37EE2",
+                "client_secret": "646E7BEC-556B-45EF-8746-3ADCF32FAB49",
+            })
+        self.token = bearer.json()
 
     def __del__(self):
         self.con.close()
