@@ -410,7 +410,8 @@ class Event:
         self.name = ""
         self.date = ""
         self.location = ""
-        self.source = ""
+        self.format = ""
+        self.numPlayers = 0
 
 class Database:
     def __init__(self):
