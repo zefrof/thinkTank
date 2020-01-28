@@ -412,6 +412,7 @@ class Event:
         self.location = ""
         self.format = ""
         self.numPlayers = 0
+        self.decks = []
 
 class Database:
     def __init__(self):

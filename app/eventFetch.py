@@ -1,6 +1,6 @@
-import requests
+import requests, re
 from bs4 import BeautifulSoup
-from classes import Event, Database
+from classes import Event, Deck, Database
 
 def main():
 
@@ -32,24 +32,49 @@ def main():
 
         event.name = text.find('h3').text
 
+        #print("Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
+
         #Iterate through decks at event
-        for row in eventText.findAll('td'):
+        for row in text.findAll('td'):
             try:
                 if "principal" in row['class']:
                     deckPage = requests.get('https://www.tcdecks.net/' + row.a['href'])
                     deckText = BeautifulSoup(deckPage.text, "html.parser")
 
-                    deckInfo = deckText.findAll('th')[0].text.strip()
+                    deck = Deck()
+
+                    deckInfo = deckText.find('th').text.strip()
+                    split = deckInfo.split('playing')
+                    deck.pilot = split[0].strip()
+                    deck.name = split[1].strip()
+
                     place = deckText.findAll('th')[1].text.strip()
+                    deck.finish = place.split(' ')[1]
 
-                    pilot = deckInfo.split('playing')[0].strip()
-                    deckName = deckInfo.split('playing')[1].strip()
-                    pos = place.split(' ')[1]
+                    print("Name: %s | Pilot: %s | Finish: %s" % (deck.name, deck.pilot, deck.finish))
+                    event.decks.append(deck)
 
-                    deckId = commitDeck(deckName, pilot, pos, eventId)
+                    #Number of each card
+                    s = deckText.findAll('tr')[2]
+
+                    for tmp in s('a'):
+                        tmp.extract()
+
+                    for tmp in s('h6'):
+                        tmp.extract()
+
+                    s = re.sub(r'\s', ' ', s.text)
+
+                    numbahs = s.split(" ")
+
+                    print(numbahs)
+
+                    #Card names
+                    #for card in deckText.findAll('tr')[2].findAll('a'):
+                        #print(card.text.strip())
 
                     #Iterate though cards in a deck
-                    for card in deckText.findAll('tr'):
+                    """ for card in deckText.findAll('tr'):
                         try:
                             if "left" in card['align']:
                                 numbahs = re.sub('[a-zA-Z]', '', card.text)
@@ -59,7 +84,7 @@ def main():
                                 numbahs = re.sub(r'\s', ' ', numbahs)
                                 numbahs = re.sub(' +', ' ', numbahs)
                                 numbahs = numbahs.strip()
-                                numbahs = numbahs.split(' ')
+                                #numbahs = numbahs.split(' ')
 
                                 names = re.sub(r'\[.+?\]', '', card.text)
                                 names = names.replace('Creatures', '')
@@ -71,42 +96,40 @@ def main():
                                 names = names.replace('Enchantments', '')
                                 names = re.sub('[0-9]', '|', names.strip())
                                 names = re.sub(r'\s', ' ', names)
-                                names = names.split('|')
-                                names = names[1:]
+                                #names = names.split('|')
+                                #names = names[1:]
 
-                                if names.count('') >= 1:
-                                    names.remove('')
+                                #if names.count('') >= 1:
+                                #    names.remove('')
 
-                                #print(names)
-                                #print(numbahs)
+                                print("Name: %s | Numbah: %s" % (names, numbahs))
 
-                                if len(numbahs) != len(names):
-                                    print(deckName + " num cards ({}) != num of numbahs ({}).".format(len(names), len(numbahs)))
-                                    continue
+                                #if len(numbahs) != len(names):
+                                #    print(deckName + " num cards ({}) != num of numbahs ({}).".format(len(names), len(numbahs)))
+                                #    continue
 
-                                mainboard = 0
-                                for x in range(len(names)):
+                                #mainboard = 0
+                                #for x in range(len(names)):
                                     #Needs to be 'fixed' for commander decks
                                     #print(mainboard)
-                                    if mainboard < 60:
-                                        sideboard = 0
-                                    else:
-                                        sideboard = 1
+                                    #if mainboard < 60:
+                                        #sideboard = 0
+                                    #else:
+                                        #sideboard = 1
 
-                                    commitCard(names[x].strip(), deckId, numbahs[x], sideboard)
-                                    mainboard += int(numbahs[x])
+                                    #mainboard += int(numbahs[x])
 
                         except Exception as e:
                             #print(e)
                             pass
-                    #break
+                    #break """
             except Exception as e:
                 #print(e)
                 pass
 
         index += 1
 
-        if index == 5:
+        if index == 3:
             break
 
 
