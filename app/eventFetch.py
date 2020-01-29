@@ -1,17 +1,20 @@
 import requests, re
 from bs4 import BeautifulSoup
-from classes import Event, Deck, Database
+from classes import Database, Event, Deck, Card
 
 def main():
 
     errCount = 0
     url = "https://www.tcdecks.net/deck.php?id="
 
+    dbm = Database()
+
     index = 1
     while errCount < 5:
         page = requests.get(url + str(index))
 
         if(page.status_code == 404):
+            print("404 Error at: %d" % (index))
             errCount += 1
             continue
 
@@ -51,7 +54,7 @@ def main():
                     place = deckText.findAll('th')[1].text.strip()
                     deck.finish = place.split(' ')[1]
 
-                    print("Name: %s | Pilot: %s | Finish: %s" % (deck.name, deck.pilot, deck.finish))
+                    #print("Name: %s | Pilot: %s | Finish: %s" % (deck.name, deck.pilot, deck.finish))
                     event.decks.append(deck)
 
                     #Number of each card
@@ -64,65 +67,24 @@ def main():
                         tmp.extract()
 
                     s = re.sub(r'\s', ' ', s.text)
+                    s = re.sub(' +', ' ', s)
+                    s = s.strip()
 
                     numbahs = s.split(" ")
-
-                    print(numbahs)
+                    numbahs = list(map(int, numbahs))
+                    total = sum(numbahs)
 
                     #Card names
-                    #for card in deckText.findAll('tr')[2].findAll('a'):
-                        #print(card.text.strip())
+                    names = []
+                    for card in deckText.findAll('tr')[2].findAll('a'):
+                        names.append(card.text.strip())
 
-                    #Iterate though cards in a deck
-                    """ for card in deckText.findAll('tr'):
-                        try:
-                            if "left" in card['align']:
-                                numbahs = re.sub('[a-zA-Z]', '', card.text)
-                                numbahs = re.sub(r'\[.+?\]', '', numbahs)
-                                #numbahs = numbahs.replace('-', '')
-                                numbahs = re.sub(r'[^a-zA-Z0-9 \n\.]', '', numbahs)
-                                numbahs = re.sub(r'\s', ' ', numbahs)
-                                numbahs = re.sub(' +', ' ', numbahs)
-                                numbahs = numbahs.strip()
-                                #numbahs = numbahs.split(' ')
+                    for n in names:
+                        card = Card()
+                        cid = card.getId(n, dbm)
+                        card.setCard(cid, dbm)
+                        deck.cards.append(card)
 
-                                names = re.sub(r'\[.+?\]', '', card.text)
-                                names = names.replace('Creatures', '')
-                                names = names.replace('Sorceries', '')
-                                names = names.replace('Artifacts', '')
-                                names = names.replace('Lands', '')
-                                names = names.replace('Instants', '')
-                                names = names.replace('Planeswalkers', '')
-                                names = names.replace('Enchantments', '')
-                                names = re.sub('[0-9]', '|', names.strip())
-                                names = re.sub(r'\s', ' ', names)
-                                #names = names.split('|')
-                                #names = names[1:]
-
-                                #if names.count('') >= 1:
-                                #    names.remove('')
-
-                                print("Name: %s | Numbah: %s" % (names, numbahs))
-
-                                #if len(numbahs) != len(names):
-                                #    print(deckName + " num cards ({}) != num of numbahs ({}).".format(len(names), len(numbahs)))
-                                #    continue
-
-                                #mainboard = 0
-                                #for x in range(len(names)):
-                                    #Needs to be 'fixed' for commander decks
-                                    #print(mainboard)
-                                    #if mainboard < 60:
-                                        #sideboard = 0
-                                    #else:
-                                        #sideboard = 1
-
-                                    #mainboard += int(numbahs[x])
-
-                        except Exception as e:
-                            #print(e)
-                            pass
-                    #break """
             except Exception as e:
                 #print(e)
                 pass
@@ -132,7 +94,9 @@ def main():
         if index == 3:
             break
 
+        event.commitEvent(dbm)
 
+    print(index)
 
 
 if __name__== "__main__":

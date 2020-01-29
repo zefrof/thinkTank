@@ -166,8 +166,17 @@ class Card:
         except:
             pass
 
-    def getCard(self, id):
-        pass
+    def getCard(self, cid, dbm):
+        with dbm.con:
+            dbm.cur.execute("SELECT c.* FROM cards c WHERE c.id = %s", (cid, ))
+            fetch = dbm.cur.fetchone()
+
+    def getId(self, name, dbm):
+        with dbm.con:
+            dbm.cur.execute("SELECT c.id FROM cards c WHERE c.name = %s ", (name, ))
+            fetch = dbm.cur.fetchone()
+
+            return fetch[0]
 
     def commitCard(self, dbm):
         with dbm.con:
@@ -279,11 +288,11 @@ class Card:
         dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 12, %s)", (self.scryfallId, self.legalities['duel']))
         dbm.cur.execute("INSERT INTO cardToFormat (cardId, formatId, legality) VALUES (%s, 13, %s)", (self.scryfallId, self.legalities['oldschool']))
 
-    def setPrice(self, id, token):
+    def setPrice(self, cid, token):
         try:
-            #id = '125843'
+            #cid = '125843'
 
-            url = "https://api.tcgplayer.com/v1.27.0/pricing/product/" + str(id)
+            url = "https://api.tcgplayer.com/v1.27.0/pricing/product/" + str(cid)
             r = requests.get(url, headers = {'Authorization' : "Bearer " + token['access_token'],})
             priceData = json.loads(r.text)
 
@@ -378,19 +387,19 @@ class Face:
 
         dbm.cur.execute("INSERT INTO cardFaceToCard (cardFaceId, cardId, displayOrder) VALUES (%s, %s, %s)", (faceId, cardId, order))
 
-    def commitFaceColors(self, id, dbm):
+    def commitFaceColors(self, cid, dbm):
         #Insert card colors into DB
         for color in self.colors:
             dbm.cur.execute("SELECT id FROM colors WHERE abbreviation = %s", (color, ))
             tmp = dbm.cur.fetchone()
             colorId = tmp[0]
-            dbm.cur.execute("INSERT INTO cardFaceToColor (cardFaceId, colorId) VALUES (%s, %s)", (id, colorId))
+            dbm.cur.execute("INSERT INTO cardFaceToColor (cardFaceId, colorId) VALUES (%s, %s)", (cid, colorId))
 
-    def commitFaceImage(self, id, dbm):
+    def commitFaceImage(self, cid, dbm):
         if self.imageUrl != "":
             dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name))
             mediaId = dbm.cur.lastrowid
-            dbm.cur.execute("INSERT INTO cardFaceToMedia (cardFaceId, mediaId) VALUES (%s, %s)", (id, mediaId))
+            dbm.cur.execute("INSERT INTO cardFaceToMedia (cardFaceId, mediaId) VALUES (%s, %s)", (cid, mediaId))
 
     def toString(self):
         return '{"name":"%s", "manaCost":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "colors":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "artist":"%s"}' % (self.name, self.manaCost, self.typeLine, self.oracleText, self.flavorText, str(self.colors), self.power, self.toughness, self.loyalty, self.artist)
@@ -401,6 +410,7 @@ class Deck:
         self.name = ""
         self.pilot = ""
         self.finish = ""
+        self.cards = []
 
         self.archetype = ""
 
@@ -413,6 +423,9 @@ class Event:
         self.format = ""
         self.numPlayers = 0
         self.decks = []
+
+    def commitEvent(self, dbm):
+        pass
 
 class Database:
     def __init__(self):
