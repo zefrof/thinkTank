@@ -54,6 +54,9 @@ class Card:
 
         self.faces = []
 
+        self.sideboard = 0
+        self.copies = 0
+
     def setCard(self, json, dbm):
         self.scryfallId = json['id']
 
@@ -171,10 +174,43 @@ class Card:
             dbm.cur.execute("SELECT c.* FROM cards c WHERE c.id = %s", (cid, ))
             fetch = dbm.cur.fetchone()
 
-    def getId(self, name, dbm):
+            self.scryfallId = fetch[0]
+            self.name = fetch[1]
+            self.releaseDate = fetch[2]
+            self.layout = fetch[3]
+            self.manaCost = fetch[4]
+            self.cmc = fetch[5]
+            self.typeLine = fetch[6]
+            self.oracleText = fetch[7]
+            self.flavorText = fetch[8]
+            self.power = fetch[9]
+            self.toughness = fetch[10]
+            self.loyalty = fetch[11]
+            self.reserved = fetch[12]
+            self.foil = fetch[13]
+            self.nonfoil = fetch[14]
+            self.oversized = fetch[15]
+            self.promo = fetch[16]
+            self.reprint = fetch[17]
+            self.variation = fetch[18]
+            self.collectorNumber = fetch[19]
+            self.rarity = fetch[20]
+            self.watermark = fetch[21]
+            self.artist = fetch[22]
+            self.textless = fetch[23]
+
+    def getCardId(self, name, dbm):
         with dbm.con:
-            dbm.cur.execute("SELECT c.id FROM cards c WHERE c.name = %s ", (name, ))
-            fetch = dbm.cur.fetchone()
+            dbm.cur.execute("SELECT id FROM cards WHERE name = %s ", (name, ))
+
+            if dbm.cur.rowcount > 0:
+                fetch = dbm.cur.fetchone()
+            else:
+                tempName = '%' + name + '%'
+                fill = '%//%'
+
+                dbm.cur.execute("SELECT id FROM `cards` WHERE `name` LIKE %s AND `name` LIKE %s ", (tempName, fill))
+                fetch = dbm.cur.fetchone()
 
             return fetch[0]
 
@@ -318,8 +354,12 @@ class Card:
             curPrice = dbm.cur.lastrowid
             dbm.cur.execute("INSERT INTO cardToPrice (cardId, priceId) VALUES (%s, %s)", (self.scryfallId, curPrice))
 
+    def cardToDeck(self, dbm, deckId):
+        with dbm.con:
+            dbm.cur.execute("INSERT INTO cardToDeck (cardId, deckId, quantity, sideboard) VALUES (%s, %s, %s, %s)", (self.scryfallId, deckId, self.copies, self.sideboard))
+
     def toString(self):
-        return '{"name":"%s", "releaseDate":"%s", "layout":"%s", "manaCost":"%s", "cmc":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "colors":"%s", "colorIdentity":"%s", "legalities":"%s", "reserved":"%s", "foil":"%s", "nonfoil":"%s", "oversized":"%s", "promo":"%s", "reprint":"%s", "variation":"%s", "mtgSet":"%s", "setCode":"%s", "collectorNumber":"%s", "rarity":"%s", "watermark":"%s", "artist":"%s", "curPrice":"%s", "curFoilPrice":"%s"}' % (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, str(self.colors), str(self.colorIden), str(self.legalities), self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.mtgSet, self.setCode, self.collectorNumber, self.rarity, self.watermark, self.artist, self.curPrice, self.curFoilPrice)
+        return '{"name":"%s", "releaseDate":"%s", "layout":"%s", "manaCost":"%s", "cmc":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "colors":"%s", "colorIdentity":"%s", "legalities":"%s", "reserved":"%s", "foil":"%s", "nonfoil":"%s", "oversized":"%s", "promo":"%s", "reprint":"%s", "variation":"%s", "mtgSet":"%s", "setCode":"%s", "collectorNumber":"%s", "rarity":"%s", "watermark":"%s", "artist":"%s", "curPrice":"%s", "curFoilPrice":"%s", "sideboard":"%s", "copies":"%s"}' % (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, str(self.colors), str(self.colorIden), str(self.legalities), self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.mtgSet, self.setCode, self.collectorNumber, self.rarity, self.watermark, self.artist, self.curPrice, self.curFoilPrice, self.sideboard, self.copies)
 
 class Face:
     def __init__(self):
@@ -411,21 +451,77 @@ class Deck:
         self.pilot = ""
         self.finish = ""
         self.cards = []
-
         self.archetype = ""
+
+    def commitDeck(self, dbm, eventId):
+        with dbm.con:
+            dbm.cur.execute("INSERT INTO decks (name, pilot, finish, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.pilot, self.finish, int(time.time())))
+            deckId = dbm.cur.lastrowid
+
+            deckToEvent(dbm, deckId, eventId)
+            commitArchetype(dbm)
+
+            for card in self.cards:
+                card.cardToDeck(dbm, deckId)
+
+    def deckToEvent(dbm, deckId, eventId):
+        with dbm.con:
+            dbm.cur.execute("INSERT INTO deckToEvent (deckId, eventId) VALUES (%s, %s)", (deckId, eventId))
+
+    def commitArchetype(self, dbm):
+        with dbm.con:
+            dbm.cur.execute("SELECT FROM archetypes WHERE name = %s", (self.archetype, ))
+
+            if dbm.cur.rowcount == 0:
+                dbm.cur.execute("INSERT INTO archetypes (name, active) VALUES (%s, %s)", (self.archetype, 1))
+                dbm.cur.execute("SELECT id FROM archetypes WHERE name = %s", (self.archetype, ))
+
+            tmp = dbm.cur.fetchone()
+            arkId = tmp[0]
+
+            dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (arkId, eventId))
+
+    def toString(self):
+        s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)
+
+        for card in self.cards:
+            s += card.toString()
+
+        return s
 
 class Event:
 
     def __init__(self):
         self.name = ""
         self.date = ""
-        self.location = ""
         self.format = ""
         self.numPlayers = 0
         self.decks = []
 
     def commitEvent(self, dbm):
-        pass
+        with dbm.con:
+
+            dbm.cur.execute("SELECT e.name, e.date FROM events e WHERE e.name = %s AND e.date = %s", (self.name, self.date))
+
+            if dbm.cur.rowcount == 1:
+                print("%s on %s already exists" % (self.name, self.date))
+            else:
+                dbm.cur.execute("INSERT INTO event (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
+                eventId = dbm.cur.lastrowid
+
+                eventToFormat(dbm)
+
+                for deck in self.decks:
+                    deck.commitDeck(dbm, eventId)
+
+    def eventToFormat(self, dbm):
+        with dbm.con:
+            dbm.cur.execute("SELECT FROM formats WHERE name = %s", (self.format, ))
+            tmp = dbm.cur.fetchone()
+            formatId = tmp[0]
+
+            dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+
 
 class Database:
     def __init__(self):

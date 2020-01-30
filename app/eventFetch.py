@@ -54,14 +54,19 @@ def main():
                     place = deckText.findAll('th')[1].text.strip()
                     deck.finish = place.split(' ')[1]
 
-                    #print("Name: %s | Pilot: %s | Finish: %s" % (deck.name, deck.pilot, deck.finish))
+                    ark = deckText.findAll('th')[2].text.strip()
+                    deck.archetype = ark.replace("Deck Name:", "")
+                    deck.archetype = deck.archetype.strip()
+
+                    #print("Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
                     event.decks.append(deck)
 
-                    #Number of each card
+                    #Number and name of each card
                     s = deckText.findAll('tr')[2]
 
+                    names = []
                     for tmp in s('a'):
-                        tmp.extract()
+                        names.append(tmp.extract().text.strip())
 
                     for tmp in s('h6'):
                         tmp.extract()
@@ -72,29 +77,44 @@ def main():
 
                     numbahs = s.split(" ")
                     numbahs = list(map(int, numbahs))
-                    total = sum(numbahs)
 
-                    #Card names
-                    names = []
-                    for card in deckText.findAll('tr')[2].findAll('a'):
-                        names.append(card.text.strip())
+                    if event.format == "commander" or event.format == "duel":
+                        total = 100
+                    else:
+                        total = 60
 
-                    for n in names:
+                    #print(names)
+                    #print(numbahs)
+
+                    mainboard = 0
+                    for x in range(len(names)):
                         card = Card()
-                        cid = card.getId(n, dbm)
-                        card.setCard(cid, dbm)
+                        cid = card.getCardId(names[x], dbm)
+                        card.getCard(cid, dbm)
+
+                        if mainboard <= total:
+                            sideboard = 0
+                        else:
+                            sideboard = 1
+
+                        card.sideboard = sideboard
+                        card.copies = numbahs[x]
                         deck.cards.append(card)
+
+                        mainboard += numbahs[x]
 
             except Exception as e:
                 #print(e)
                 pass
 
+        #print(deck.toString())
+
+        event.commitEvent(dbm)
+
         index += 1
 
         if index == 3:
             break
-
-        event.commitEvent(dbm)
 
     print(index)
 
