@@ -458,19 +458,19 @@ class Deck:
             dbm.cur.execute("INSERT INTO decks (name, pilot, finish, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.pilot, self.finish, int(time.time())))
             deckId = dbm.cur.lastrowid
 
-            deckToEvent(dbm, deckId, eventId)
-            commitArchetype(dbm)
+            self.deckToEvent(dbm, deckId, eventId)
+            self.commitArchetype(dbm, deckId)
 
             for card in self.cards:
                 card.cardToDeck(dbm, deckId)
 
-    def deckToEvent(dbm, deckId, eventId):
+    def deckToEvent(self, dbm, deckId, eventId):
         with dbm.con:
             dbm.cur.execute("INSERT INTO deckToEvent (deckId, eventId) VALUES (%s, %s)", (deckId, eventId))
 
-    def commitArchetype(self, dbm):
+    def commitArchetype(self, dbm, deckId):
         with dbm.con:
-            dbm.cur.execute("SELECT FROM archetypes WHERE name = %s", (self.archetype, ))
+            dbm.cur.execute("SELECT id FROM archetypes WHERE name = %s", (self.archetype, ))
 
             if dbm.cur.rowcount == 0:
                 dbm.cur.execute("INSERT INTO archetypes (name, active) VALUES (%s, %s)", (self.archetype, 1))
@@ -479,7 +479,7 @@ class Deck:
             tmp = dbm.cur.fetchone()
             arkId = tmp[0]
 
-            dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (arkId, eventId))
+            dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (arkId, deckId))
 
     def toString(self):
         s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)
@@ -506,17 +506,17 @@ class Event:
             if dbm.cur.rowcount == 1:
                 print("%s on %s already exists" % (self.name, self.date))
             else:
-                dbm.cur.execute("INSERT INTO event (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
+                dbm.cur.execute("INSERT INTO events (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
                 eventId = dbm.cur.lastrowid
 
-                eventToFormat(dbm)
+                self.eventToFormat(dbm, eventId)
 
                 for deck in self.decks:
                     deck.commitDeck(dbm, eventId)
 
-    def eventToFormat(self, dbm):
+    def eventToFormat(self, dbm, eventId):
         with dbm.con:
-            dbm.cur.execute("SELECT FROM formats WHERE name = %s", (self.format, ))
+            dbm.cur.execute("SELECT id FROM formats WHERE name = %s", (self.format, ))
             tmp = dbm.cur.fetchone()
             formatId = tmp[0]
 

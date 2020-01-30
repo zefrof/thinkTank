@@ -12,6 +12,7 @@ def main():
     index = 1
     while errCount < 5:
         page = requests.get(url + str(index))
+        #page.encoding = 'utf-8'
 
         if(page.status_code == 404):
             print("404 Error at: %d" % (index))
@@ -20,10 +21,11 @@ def main():
 
         event = Event()
 
-        text = BeautifulSoup(page.text, "html.parser")
+        text = BeautifulSoup(page.text, features="html.parser")
         split = text.find('h5').text.split('|')
 
         event.format = split[0].replace("Format:", "")
+        event.format = re.sub('[\(\[].*?[\)\]]', ' ', event.format)
         event.format = event.format.replace("Archive", "")
         event.format = event.format.strip()
 
@@ -42,23 +44,24 @@ def main():
             try:
                 if "principal" in row['class']:
                     deckPage = requests.get('https://www.tcdecks.net/' + row.a['href'])
-                    deckText = BeautifulSoup(deckPage.text, "html.parser")
+                    print(type(deckPage.text))
+                    deckText = BeautifulSoup(deckPage.text, features="html.parser")
 
                     deck = Deck()
 
                     deckInfo = deckText.find('th').text.strip()
                     split = deckInfo.split('playing')
                     deck.pilot = split[0].strip()
-                    deck.name = split[1].strip()
+                    deck.archetype = split[1].strip()
 
                     place = deckText.findAll('th')[1].text.strip()
                     deck.finish = place.split(' ')[1]
 
                     ark = deckText.findAll('th')[2].text.strip()
-                    deck.archetype = ark.replace("Deck Name:", "")
-                    deck.archetype = deck.archetype.strip()
+                    deck.name = ark.replace("Deck Name:", "")
+                    deck.name = deck.name.strip()
 
-                    #print("Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
+                    print("Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
                     event.decks.append(deck)
 
                     #Number and name of each card
@@ -103,13 +106,10 @@ def main():
 
                         mainboard += numbahs[x]
 
-            except Exception as e:
-                #print(e)
+            except:
                 pass
 
-        #print(deck.toString())
-
-        event.commitEvent(dbm)
+        #event.commitEvent(dbm)
 
         index += 1
 
