@@ -13,19 +13,23 @@ def main():
     end = 0
 
     with dbm.con:
-        dbm.cur.execute("SELECT COUNT(id) FROM events;")
+        dbm.cur.execute("SELECT `index` FROM scrapeInfo WHERE id = 1;")
         tmp = dbm.cur.fetchone()
-        index = tmp[0] - 5
-        end = index + 200
+        print(tmp[0])
+        index = tmp[0] - 3
+        if index <= 0:
+            index = 1
+
+        end = index + 20
 
 
     while errCount < 5:
         page = requests.get(url + str(index))
-        #page.encoding = 'utf-8'
 
         if(page.status_code == 404):
             print("404 Error at: %d" % (index))
             errCount += 1
+            index += 1
             continue
 
         event = Event()
@@ -124,8 +128,8 @@ def main():
 
                         mainboard += numbahs[x]
 
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
         event.commitEvent(dbm)
 
@@ -134,7 +138,8 @@ def main():
 
         index += 1
 
-    print(index)
+    with dbm.con:
+        dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
 
 
 if __name__== "__main__":
