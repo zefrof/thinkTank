@@ -60,7 +60,7 @@ def main():
             index += 1
             continue
 
-        #print("Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
+        #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
 
         #Iterate through decks at event
         for row in text.findAll('td'):
@@ -83,7 +83,7 @@ def main():
                     deck.name = ark.replace("Deck Name:", "")
                     deck.name = deck.name.strip()
 
-                    #print("!!! Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
+                    #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
                     event.decks.append(deck)
 
                     #Number and name of each card
@@ -111,6 +111,13 @@ def main():
                     #print(names)
                     #print(numbahs)
 
+                    if len(names) != len(numbahs):
+                        print("!!! Huston we have a problem at deck %s from event %s on %s" % (deck.name, event.name, event.date))
+                        print(names)
+                        print(numbahs)
+                        index += 1
+                        continue
+
                     mainboard = 0
                     for x in range(len(names)):
                         card = Card()
@@ -135,6 +142,8 @@ def main():
 
         if index == end:
             break
+
+        print(index)
 
         index += 1
 
