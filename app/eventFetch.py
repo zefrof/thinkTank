@@ -16,7 +16,7 @@ def main():
         dbm.cur.execute("SELECT COUNT(id) FROM events;")
         tmp = dbm.cur.fetchone()
         index = tmp[0] - 5
-        end = index + 100
+        end = index + 200
 
 
     while errCount < 5:
