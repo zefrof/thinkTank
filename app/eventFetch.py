@@ -9,7 +9,16 @@ def main():
 
     dbm = Database()
 
-    index = 1
+    index = 0
+    end = 0
+
+    with dbm.con:
+        dbm.cur.execute("SELECT COUNT(id) FROM events;")
+        tmp = dbm.cur.fetchone()
+        index = tmp[0] - 5
+        end = index + 100
+
+
     while errCount < 5:
         page = requests.get(url + str(index))
         #page.encoding = 'utf-8'
@@ -21,7 +30,7 @@ def main():
 
         event = Event()
 
-        text = BeautifulSoup(page.text, features="html.parser")
+        text = BeautifulSoup(page.content, features="html.parser")
         split = text.find('h5').text.split('|')
 
         event.format = split[0].replace("Format:", "")
@@ -29,13 +38,23 @@ def main():
         event.format = event.format.replace("Archive", "")
         event.format = event.format.strip()
 
+        if event.format == "Vintage Old School":
+            event.format = "Old School"
+
         event.numPlayers = split[1].replace("Number of Players:", "")
         event.numPlayers = event.numPlayers.strip()
+
+        if event.numPlayers == "Unknown":
+            event.numPlayers = 0
 
         event.date = split[2].replace("Date:", "")
         event.date = event.date.strip()
 
         event.name = text.find('h3').text
+
+        if event.name == "":
+            index += 1
+            continue
 
         #print("Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
 
@@ -44,8 +63,7 @@ def main():
             try:
                 if "principal" in row['class']:
                     deckPage = requests.get('https://www.tcdecks.net/' + row.a['href'])
-                    print(type(deckPage.text))
-                    deckText = BeautifulSoup(deckPage.text, features="html.parser")
+                    deckText = BeautifulSoup(deckPage.content, features="html.parser")
 
                     deck = Deck()
 
@@ -61,7 +79,7 @@ def main():
                     deck.name = ark.replace("Deck Name:", "")
                     deck.name = deck.name.strip()
 
-                    print("Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
+                    #print("!!! Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
                     event.decks.append(deck)
 
                     #Number and name of each card
@@ -81,7 +99,7 @@ def main():
                     numbahs = s.split(" ")
                     numbahs = list(map(int, numbahs))
 
-                    if event.format == "commander" or event.format == "duel":
+                    if event.format == "Commander" or event.format == "Duel":
                         total = 100
                     else:
                         total = 60
@@ -95,7 +113,7 @@ def main():
                         cid = card.getCardId(names[x], dbm)
                         card.getCard(cid, dbm)
 
-                        if mainboard <= total:
+                        if mainboard < total:
                             sideboard = 0
                         else:
                             sideboard = 1
@@ -109,12 +127,12 @@ def main():
             except:
                 pass
 
-        #event.commitEvent(dbm)
+        event.commitEvent(dbm)
+
+        if index == end:
+            break
 
         index += 1
-
-        if index == 3:
-            break
 
     print(index)
 

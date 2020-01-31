@@ -260,7 +260,7 @@ class Card:
                 if fetch[1] < (int(time.time()) - 7889400):
                     dbm.cur.execute("UPDATE media SET mediaUrl = %s WHERE id = %s", (self.imageUrl, fetch[0]))
             else:
-                dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet))
+                dbm.cur.execute("INSERT INTO media (mediaUrl, altText, dateAdded) VALUES (%s, %s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet, int(time.time())))
                 mediaId = dbm.cur.lastrowid
                 dbm.cur.execute("INSERT INTO mediaToCard (mediaId, cardId) VALUES (%s, %s)", (mediaId, self.scryfallId))
 
@@ -504,7 +504,7 @@ class Event:
             dbm.cur.execute("SELECT e.name, e.date FROM events e WHERE e.name = %s AND e.date = %s", (self.name, self.date))
 
             if dbm.cur.rowcount == 1:
-                print("%s on %s already exists" % (self.name, self.date))
+                print("!!! %s on %s already exists" % (self.name, self.date))
             else:
                 dbm.cur.execute("INSERT INTO events (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
                 eventId = dbm.cur.lastrowid
@@ -516,11 +516,19 @@ class Event:
 
     def eventToFormat(self, dbm, eventId):
         with dbm.con:
-            dbm.cur.execute("SELECT id FROM formats WHERE name = %s", (self.format, ))
-            tmp = dbm.cur.fetchone()
-            formatId = tmp[0]
+            try:
+                dbm.cur.execute("SELECT id FROM formats WHERE name = %s", (self.format, ))
+                tmp = dbm.cur.fetchone()
+                formatId = tmp[0]
 
-            dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+                dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+            except:
+                print("!!! The %s format didn't exist for event %s on %s" % (self.format, self.name, self.date))
+
+                dbm.cur.execute("INSERT INTO formats (name, active) VALUES (%s, 0)", (self.format, ))
+                formatId = dbm.cur.lastrowid
+
+                dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
 
 
 class Database:
