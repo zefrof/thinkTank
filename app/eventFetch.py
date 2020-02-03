@@ -20,7 +20,7 @@ def main():
         if index <= 0:
             index = 1
 
-        end = index + 203
+        end = index + 253
 
 
     while errCount < 5:
@@ -153,7 +153,7 @@ def main():
 
     if errCount == 5:
         index -= 10
-    
+
     with dbm.con:
         dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
 

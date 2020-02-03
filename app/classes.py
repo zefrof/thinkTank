@@ -536,10 +536,39 @@ class Event:
             else:
                 return False
 
+    def getEvent(self, cid, dbm):
+        with dbm.con:
+            dbm.cur.execute("SELECT * FROM `events` WHERE id = %s", (cid, ))
+            fetch = dbm.cur.fetchone()
+
+            self.name = fetch[1]
+            self.date = fetch[2]
+            self.numPlayers = fetch[3]
+
+
+
+class Content:
+    def __init__(self):
+        pass
+
+    def fetchEvents(self, dbm):
+        events = []
+        with dbm.con:
+            dbm.cur.execute("SELECT id FROM `events` WHERE active = 1 ORDER BY date DESC, name LIMIT 40 ")
+            fetch = dbm.cur.fetchall()
+
+            for x in fetch:
+                event = Event()
+                event.getEvent(x, dbm)
+                events.append(event)
+
+        return events
+
+
 
 class Database:
     def __init__(self):
-        self.con = pymysql.connect('localhost', 'zefrof', 'hYbGFkPCgw@a', 'magic')
+        self.con = pymysql.connect('18.223.101.184', 'zefrof', 'hYbGFkPCgw@a', 'magic')
         self.cur = self.con.cursor()
 
         #Get auth token from TCGPlayer

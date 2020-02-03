@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import render_template
+from classes import Database, Content, Event, Deck, Card
 app = Flask(__name__)
 
 @app.route('/')
@@ -17,6 +18,12 @@ def cmsHome():
 
 @app.route('/cmsEvents/')
 def cmsEvents():
+    dbm = Database()
+    cont = Content()
+    events = cont.fetchEvents(dbm)
+
+    print(events)
+
     return render_template('cmsEvents.html')
 
 @app.route('/editEvent/')
