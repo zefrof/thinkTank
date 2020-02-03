@@ -20,7 +20,7 @@ def main():
         if index <= 0:
             index = 1
 
-        end = index + 20
+        end = index + 203
 
 
     while errCount < 5:
@@ -57,6 +57,10 @@ def main():
         event.name = text.find('h3').text
 
         if event.name == "":
+            index += 1
+            continue
+
+        if event.eventExists(dbm) == True:
             index += 1
             continue
 
@@ -135,8 +139,8 @@ def main():
 
                         mainboard += numbahs[x]
 
-            except Exception as e:
-                print(e)
+            except:
+                pass
 
         event.commitEvent(dbm)
 
@@ -147,6 +151,9 @@ def main():
 
         index += 1
 
+    if errCount == 5:
+        index -= 10
+    
     with dbm.con:
         dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
 

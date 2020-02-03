@@ -501,18 +501,13 @@ class Event:
     def commitEvent(self, dbm):
         with dbm.con:
 
-            dbm.cur.execute("SELECT e.name, e.date FROM events e WHERE e.name = %s AND e.date = %s", (self.name, self.date))
+            dbm.cur.execute("INSERT INTO events (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
+            eventId = dbm.cur.lastrowid
 
-            if dbm.cur.rowcount == 1:
-                print("!!! %s on %s already exists" % (self.name, self.date))
-            else:
-                dbm.cur.execute("INSERT INTO events (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
-                eventId = dbm.cur.lastrowid
+            self.eventToFormat(dbm, eventId)
 
-                self.eventToFormat(dbm, eventId)
-
-                for deck in self.decks:
-                    deck.commitDeck(dbm, eventId)
+            for deck in self.decks:
+                deck.commitDeck(dbm, eventId)
 
     def eventToFormat(self, dbm, eventId):
         with dbm.con:
@@ -529,6 +524,17 @@ class Event:
                 formatId = dbm.cur.lastrowid
 
                 dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+
+    def eventExists(self, dbm):
+        with dbm.con:
+
+            dbm.cur.execute("SELECT e.name, e.date FROM events e JOIN eventToFormat etf ON etf.eventId = e.id JOIN formats f ON f.id = etf.formatId WHERE e.name = %s AND e.date = %s AND f.name = %s ", (self.name, self.date, self.format))
+
+            if dbm.cur.rowcount == 1:
+                print("!!! %s on %s already exists" % (self.name, self.date))
+                return True
+            else:
+                return False
 
 
 class Database:
