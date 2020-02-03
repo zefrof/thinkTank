@@ -1,4 +1,4 @@
 
 app/scryfall-default-cards.json
 .vscode/settings.json
-app/__pycache__/classes.cpython-37.pyc
+app/__pycache__/*
