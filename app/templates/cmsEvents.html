@@ -1,4 +1,23 @@
 {% extends "/inc/cmsLayout.html" %}
 {% block body %}
-   <p>CMS events page</p>
+    <p>CMS events page</p>
+    <div class="table">
+        <div>
+            <div class="tblCol">Name</div>
+            <div class="tblCol">Date</div>
+            <div class="tblCol">Number of Players</div>
+            <div class="tblCol">Format</div>
+        </div>
+    {% for event in events %}
+        <div class="tblRow">
+            <div><a href="/editEvent/{{event.cid}}">Edit</a></div>
+            <div class="tblCol">{{event.name}}</div>
+            <div class="tblCol">{{event.date}}</div>
+            <div class="tblCol">{{event.numPlayers}}</div>
+            <div class="tblCol">{{event.format}}</div>
+        </div>
+    {% endfor %}
+    </div>
+    <button class="nextButton"><a href="/cmsEvents/{{page - 1}}">Prev</a></button>
+    <button class="nextButton"><a href="/cmsEvents/{{page + 1}}">Next</a></button>
 {% endblock %}

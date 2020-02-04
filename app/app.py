@@ -17,15 +17,26 @@ def cmsHome():
     return render_template('cmsIndex.html')
 
 @app.route('/cmsEvents/')
-def cmsEvents():
+@app.route('/cmsEvents/<page>')
+def cmsEvents(page = 1):
+    page = int(page)
+
     dbm = Database()
     cont = Content()
-    events = cont.fetchEvents(dbm)
 
-    print(events)
+    if page <= 0:
+        page = 1
+    events = cont.fetchEvents(dbm, page)
 
-    return render_template('cmsEvents.html')
+    #for event in events:
+    #    print(event.name)
 
-@app.route('/editEvent/')
-def editEvent():
-    return render_template('editEvent.html')
+    return render_template('cmsEvents.html', events = events, page = page)
+
+@app.route('/editEvent/<cid>')
+def editEvent(cid):
+    dbm = Database()
+
+    event = Event()
+    event.getEvent(dbm, cid, 1)
+    return render_template('editEvent.html', event = event)

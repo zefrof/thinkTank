@@ -453,6 +453,8 @@ class Deck:
         self.cards = []
         self.archetype = ""
 
+        self.cid = 0
+
     def commitDeck(self, dbm, eventId):
         with dbm.con:
             dbm.cur.execute("INSERT INTO decks (name, pilot, finish, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.pilot, self.finish, int(time.time())))
@@ -498,6 +500,8 @@ class Event:
         self.numPlayers = 0
         self.decks = []
 
+        self.cid = 0
+
     def commitEvent(self, dbm):
         with dbm.con:
 
@@ -536,30 +540,44 @@ class Event:
             else:
                 return False
 
-    def getEvent(self, cid, dbm):
+    def getEvent(self, dbm, cid, full = 0):
         with dbm.con:
-            dbm.cur.execute("SELECT * FROM `events` WHERE id = %s", (cid, ))
+            dbm.cur.execute("SELECT e.*, f.name as formatName FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id JOIN formats f ON f.id = ef.formatId WHERE e.id = %s", (cid, ))
             fetch = dbm.cur.fetchone()
 
+            self.cid = fetch[0]
             self.name = fetch[1]
             self.date = fetch[2]
             self.numPlayers = fetch[3]
+            self.format = fetch[7]
 
+            if full == 1:
+                dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, d.active, a.id AS arkId, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (cid, ))
+                fetch = dbm.cur.fetchall()
 
+                for d in fetch:
+                    deck = Deck()
+                    deck.cid = d[0]
+                    deck.name = d[1]
+                    deck.pilot = d[2]
+                    deck.finish = d[3]
+                    deck.archetype = d[6]
+                    self.decks.append(deck)
 
 class Content:
     def __init__(self):
         pass
 
-    def fetchEvents(self, dbm):
+    def fetchEvents(self, dbm, page):
         events = []
         with dbm.con:
-            dbm.cur.execute("SELECT id FROM `events` WHERE active = 1 ORDER BY date DESC, name LIMIT 40 ")
+            offset = (page - 1) * 20
+            dbm.cur.execute("SELECT id FROM `events` WHERE active = 1 ORDER BY date DESC, name LIMIT %s, 20 ", (offset, ))
             fetch = dbm.cur.fetchall()
 
             for x in fetch:
                 event = Event()
-                event.getEvent(x, dbm)
+                event.getEvent(dbm, x)
                 events.append(event)
 
         return events

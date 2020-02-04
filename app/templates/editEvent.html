@@ -1,4 +1,52 @@
 {% extends "/inc/cmsLayout.html" %}
 {% block body %}
+    <p>Edit Event</p>
 
+    <div>
+        <form>
+        <div class="table">
+            <div class="tblRow">
+                <div class="tblCol">
+                    <h3>Event</h3>
+                    <input name="eventName" value="{{event.name}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Date</h3>
+                    <input name="eventDate" value="{{event.date}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Number of Players</h3>
+                    <input name="eventName" value="{{event.numPlayers}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Format</h3>
+                    <input name="eventName" value="{{event.format}}">
+                </div>
+            </div>
+            <div class="tblRow">
+
+            </div>
+            {% for deck in event.decks %}
+            <div class="tblRow">
+                <div class="tblCol">
+                    <h3>Deck Name</h3>
+                    <input name="deckName" value="{{deck.name}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Deck Pilot</h3>
+                    <input name="deckPilot" value="{{deck.pilot}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Finish</h3>
+                    <input name="finish" value="{{deck.finish}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Archetype</h3>
+                    <input name="archetype" value="{{deck.archetype}}">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        </form>
+    </div>
 {% endblock %}
