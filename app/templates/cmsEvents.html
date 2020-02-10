@@ -1,23 +1,24 @@
 {% extends "/inc/cmsLayout.html" %}
 {% block body %}
     <p>CMS events page</p>
-    <div class="table">
-        <div>
-            <div class="tblCol">Name</div>
-            <div class="tblCol">Date</div>
-            <div class="tblCol">Number of Players</div>
-            <div class="tblCol">Format</div>
-        </div>
+    <div class="grid-x grid-margin-x">
+        <div class="cell small-2"><!--For Spacing--></div>
+        <div class="cell small-4">Name</div>
+        <div class="cell small-2">Date</div>
+        <div class="cell small-2">Number of Players</div>
+        <div class="cell small-2">Format</div>
+    </div>
     {% for event in events %}
-        <div class="tblRow">
-            <div><a href="/editEvent/{{event.cid}}">Edit</a></div>
-            <div class="tblCol">{{event.name}}</div>
-            <div class="tblCol">{{event.date}}</div>
-            <div class="tblCol">{{event.numPlayers}}</div>
-            <div class="tblCol">{{event.format}}</div>
+        <div class="grid-x grid-margin-x">
+            <div class="cell small-2 large-2"><a class="tiny button" href="/editEvent/{{event.cid}}">Edit</a></div>
+            <div class="cell small-4 large-4">{{event.name}}</div>
+            <div class="cell small-2 large-2">{{event.date}}</div>
+            <div class="cell small-2 large-2">{{event.numPlayers}}</div>
+            <div class="cell small-2 large-2">{{event.format}}</div>
         </div>
     {% endfor %}
+    <div class="grid-x grid-margin-x clearfix">
+        <div class="cell small-6"><a class="small button float-right" href="/cmsEvents/{{page - 1}}">Prev</a></div>
+        <div class="cell small-6"><a class="small button" href="/cmsEvents/{{page + 1}}">Next</a></div>
     </div>
-    <button class="nextButton"><a href="/cmsEvents/{{page - 1}}">Prev</a></button>
-    <button class="nextButton"><a href="/cmsEvents/{{page + 1}}">Next</a></button>
 {% endblock %}
