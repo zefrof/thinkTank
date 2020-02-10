@@ -356,7 +356,7 @@ class Card:
 
     def cardToDeck(self, dbm, deckId):
         with dbm.con:
-            dbm.cur.execute("INSERT INTO cardToDeck (cardId, deckId, quantity, sideboard) VALUES (%s, %s, %s, %s)", (self.scryfallId, deckId, self.copies, self.sideboard))
+            dbm.cur.execute("INSERT INTO cardToDeck (cardId, deckId, copies, sideboard) VALUES (%s, %s, %s, %s)", (self.scryfallId, deckId, self.copies, self.sideboard))
 
     def toString(self):
         return '{"name":"%s", "releaseDate":"%s", "layout":"%s", "manaCost":"%s", "cmc":"%s", "typeLine":"%s", "oracleText":"%s", "flavorText":"%s", "power":"%s", "toughness":"%s", "loyalty":"%s", "colors":"%s", "colorIdentity":"%s", "legalities":"%s", "reserved":"%s", "foil":"%s", "nonfoil":"%s", "oversized":"%s", "promo":"%s", "reprint":"%s", "variation":"%s", "mtgSet":"%s", "setCode":"%s", "collectorNumber":"%s", "rarity":"%s", "watermark":"%s", "artist":"%s", "curPrice":"%s", "curFoilPrice":"%s", "sideboard":"%s", "copies":"%s"}' % (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, str(self.colors), str(self.colorIden), str(self.legalities), self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.mtgSet, self.setCode, self.collectorNumber, self.rarity, self.watermark, self.artist, self.curPrice, self.curFoilPrice, self.sideboard, self.copies)
@@ -451,6 +451,7 @@ class Deck:
         self.pilot = ""
         self.finish = ""
         self.cards = []
+        self.sideboard = []
         self.archetype = ""
 
         self.cid = 0
@@ -560,8 +561,22 @@ class Event:
                     deck.cid = d[0]
                     deck.name = d[1]
                     deck.pilot = d[2]
-                    deck.finish = d[3]
+                    deck.finish = d[3] 
                     deck.archetype = d[6]
+
+                    dbm.cur.execute("SELECT c.name, cd.copies, cd.sideboard FROM cards c JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (deck.cid, ))
+                    fetch2 = dbm.cur.fetchall()
+
+                    for c in fetch2:
+                        card = Card()
+                        card.name = c[0].strip()
+                        card.copies = int(c[1])
+                        card.sideboard = int(c[2])
+                        if card.sideboard == 0:
+                            deck.cards.append(card)
+                        elif card.sideboard == 1:
+                            deck.sideboard.append(card)
+
                     self.decks.append(deck)
 
 class Content:

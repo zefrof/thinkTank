@@ -3,7 +3,7 @@
     <p>Edit Event</p>
 
     <div>
-        <form>
+        <form id="eventForm" action="/saveevent" method="post" onsubmit="return xhrHandler(this)" target="_blank">
         <div class="table">
             <div class="tblRow">
                 <div class="tblCol">
@@ -43,6 +43,22 @@
                 <div class="tblCol">
                     <h3>Archetype</h3>
                     <input name="archetype" value="{{deck.archetype}}">
+                </div>
+                <div class="tblCol">
+                    <h3>Mainboard</h3>
+                    <textarea>
+                        {% for card in deck.cards %}
+{{card.copies}} {{card.name}}
+                        {% endfor %}
+                    </textarea>
+                </div>
+                <div class="tblCol">
+                    <h3>Sideboard</h3>
+                    <textarea>
+                        {% for card in deck.sideboard %}
+{{card.copies}} {{card.name}}
+                        {% endfor %}
+                    </textarea>
                 </div>
             </div>
             {% endfor %}

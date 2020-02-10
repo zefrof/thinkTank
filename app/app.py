@@ -40,3 +40,9 @@ def editEvent(cid):
     event = Event()
     event.getEvent(dbm, cid, 1)
     return render_template('editEvent.html', event = event)
+
+@app.route('/saveevent',methods = ['POST', 'GET'])
+def saveEvent():
+    if request.method == 'POST':
+      result = request.form
+      print(result)
