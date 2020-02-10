@@ -2,23 +2,23 @@
 {% block body %}
     <p>CMS events page</p>
     <div class="grid-x grid-margin-x">
-        <div class="cell small-2"><!--For Spacing--></div>
-        <div class="cell small-4">Name</div>
-        <div class="cell small-2">Date</div>
-        <div class="cell small-2">Number of Players</div>
-        <div class="cell small-2">Format</div>
+        <div class="cell small-2 medium-2"><!--For Spacing--></div>
+        <div class="cell small-3 medium-4">Name</div>
+        <div class="cell small-2 medium-2">Date</div>
+        <div class="cell small-3 medium-2">Number of Players</div>
+        <div class="cell small-2 medium-2">Format</div>
     </div>
     {% for event in events %}
-        <div class="grid-x grid-margin-x">
-            <div class="cell small-2 large-2"><a class="tiny button" href="/editEvent/{{event.cid}}">Edit</a></div>
-            <div class="cell small-4 large-4">{{event.name}}</div>
-            <div class="cell small-2 large-2">{{event.date}}</div>
-            <div class="cell small-2 large-2">{{event.numPlayers}}</div>
-            <div class="cell small-2 large-2">{{event.format}}</div>
+        <div class="grid-x grid-padding-x">
+            <div class="cell small-2 medium-2"><a class="tiny button" href="/editEvent/{{event.cid}}">Edit</a></div>
+            <div class="cell small-3 medium-4">{{event.name}}</div>
+            <div class="cell small-2 medium-2">{{event.date}}</div>
+            <div class="cell small-3 medium-2 text-center">{{event.numPlayers}}</div>
+            <div class="cell small-2 medium-2">{{event.format}}</div>
         </div>
     {% endfor %}
     <div class="grid-x grid-margin-x clearfix">
-        <div class="cell small-6"><a class="small button float-right" href="/cmsEvents/{{page - 1}}">Prev</a></div>
-        <div class="cell small-6"><a class="small button" href="/cmsEvents/{{page + 1}}">Next</a></div>
+        <div class="cell small-6"><a class="small button info float-right" href="/cmsEvents/{{page - 1}}">Prev</a></div>
+        <div class="cell small-6"><a class="small button info" href="/cmsEvents/{{page + 1}}">Next</a></div>
     </div>
 {% endblock %}
