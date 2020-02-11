@@ -1,5 +1,4 @@
-from flask import Flask
-from flask import render_template
+from flask import Flask, render_template, request
 from classes import Database, Content, Event, Deck, Card
 app = Flask(__name__)
 
@@ -39,10 +38,14 @@ def editEvent(cid):
 
     event = Event()
     event.getEvent(dbm, cid, 1)
+
     return render_template('editEvent.html', event = event)
 
-@app.route('/saveevent',methods = ['POST', 'GET'])
+@app.route('/saveevent/', methods = ['POST', 'GET'])
 def saveEvent():
     if request.method == 'POST':
       result = request.form
-      print(result)
+      #print(result['deckName[]'])
+      print(result.getlist('deckName[]'))
+
+      return cmsEvents()

@@ -4,65 +4,55 @@
 
     <div>
         <form id="eventForm" action="/saveevent" method="post" onsubmit="return xhrHandler(this)" target="_blank">
-        <div class="table">
-            <div class="tblRow">
-                <div class="tblCol">
-                    <h3>Event</h3>
-                    <input name="eventName" value="{{event.name}}">
+            <div class="grid-x grid-padding-x">
+                <div class="cell small-3">
+                    <h4>Event</h4>
+                    <input type="text" name="eventName" value="{{event.name}}">
                 </div>
-                <div class="tblCol">
-                    <h3>Date</h3>
-                    <input name="eventDate" value="{{event.date}}">
+                <div class="cell small-3">
+                    <h4>Date</h4>
+                    <input type="text" name="eventDate" value="{{event.date}}">
                 </div>
-                <div class="tblCol">
-                    <h3>Number of Players</h3>
-                    <input name="eventName" value="{{event.numPlayers}}">
+                <div class="cell small-3">
+                    <h4>Number of Players</h4>
+                    <input type="text" name="numPlayers" value="{{event.numPlayers}}">
                 </div>
-                <div class="tblCol">
-                    <h3>Format</h3>
-                    <input name="eventName" value="{{event.format}}">
+                <div class="cell small-3">
+                    <h4>Format</h4>
+                    <input type="text" name="format" value="{{event.format}}">
                 </div>
-            </div>
-            <div class="tblRow">
-
             </div>
             {% for deck in event.decks %}
-            <div class="tblRow">
-                <div class="tblCol">
-                    <h3>Deck Name</h3>
-                    <input name="deckName" value="{{deck.name}}">
+                <div class="grid-x grid-padding-x">
+                    <div class="cell small-3">
+                        <h4>Deck Name</h4>
+                        <input type="text" name="deckName" value="{{deck.name}}">
+                    </div>
+                    <div class="cell small-3">
+                        <h4>Deck Pilot</h4>
+                        <input type="text" name="deckPilot" value="{{deck.pilot}}">
+                    </div>
+                    <div class="cell small-3">
+                        <h4>Finish</h4>
+                        <input type="text" name="finish" value="{{deck.finish}}">
+                    </div>
+                    <div class="cell small-3">
+                        <h4>Archetype</h4>
+                        <input type="text" name="archetype" value="{{deck.archetype}}">
+                    </div>
                 </div>
-                <div class="tblCol">
-                    <h3>Deck Pilot</h3>
-                    <input name="deckPilot" value="{{deck.pilot}}">
+                <div class="grid-x grid-padding-x">
+                    <div class="cell small-6">
+                        <h4>Mainboard</h4>
+                        <textarea name="mainboard">{% for card in deck.cards %}{{card.copies}} {{card.name}}&#10;{% endfor %}</textarea>
+                    </div>
+                    <div class="cell small-6">
+                        <h4>Sideboard</h4>
+                        <textarea name="sideboard">{% for card in deck.sideboard %}{{card.copies}} {{card.name}}&#10;{% endfor %}</textarea>
+                    </div>
                 </div>
-                <div class="tblCol">
-                    <h3>Finish</h3>
-                    <input name="finish" value="{{deck.finish}}">
-                </div>
-                <div class="tblCol">
-                    <h3>Archetype</h3>
-                    <input name="archetype" value="{{deck.archetype}}">
-                </div>
-                <div class="tblCol">
-                    <h3>Mainboard</h3>
-                    <textarea>
-                        {% for card in deck.cards %}
-{{card.copies}} {{card.name}}
-                        {% endfor %}
-                    </textarea>
-                </div>
-                <div class="tblCol">
-                    <h3>Sideboard</h3>
-                    <textarea>
-                        {% for card in deck.sideboard %}
-{{card.copies}} {{card.name}}
-                        {% endfor %}
-                    </textarea>
-                </div>
-            </div>
             {% endfor %}
-        </div>
+            <input type="submit" class="success button" value="Submit"/>
         </form>
     </div>
 {% endblock %}

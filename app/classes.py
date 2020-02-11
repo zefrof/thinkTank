@@ -561,7 +561,7 @@ class Event:
                     deck.cid = d[0]
                     deck.name = d[1]
                     deck.pilot = d[2]
-                    deck.finish = d[3] 
+                    deck.finish = d[3]
                     deck.archetype = d[6]
 
                     dbm.cur.execute("SELECT c.name, cd.copies, cd.sideboard FROM cards c JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (deck.cid, ))
@@ -569,7 +569,7 @@ class Event:
 
                     for c in fetch2:
                         card = Card()
-                        card.name = c[0].strip()
+                        card.name = c[0]
                         card.copies = int(c[1])
                         card.sideboard = int(c[2])
                         if card.sideboard == 0:
