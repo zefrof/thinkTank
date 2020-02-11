@@ -15,8 +15,8 @@ def deck(id = None):
 def cmsHome():
     return render_template('cmsIndex.html')
 
-@app.route('/cmsEvents/')
-@app.route('/cmsEvents/<page>')
+@app.route('/cmsevents/')
+@app.route('/cmsevents/<page>')
 def cmsEvents(page = 1):
     page = int(page)
 
@@ -32,7 +32,7 @@ def cmsEvents(page = 1):
 
     return render_template('cmsEvents.html', events = events, page = page)
 
-@app.route('/editEvent/<cid>')
+@app.route('/editevent/<cid>')
 def editEvent(cid):
     dbm = Database()
 
@@ -45,7 +45,16 @@ def editEvent(cid):
 def saveEvent():
     if request.method == 'POST':
       result = request.form
-      #print(result['deckName[]'])
-      print(result.getlist('deckName[]'))
+
+      #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
+
+      deckNames = result.getlist('deckName')
+      deckPilot = result.getlist('deckPilot')
+      finish = result.getlist('finish')
+      ark = result.getlist('archetype')
+      for i in range(len(deckNames)):
+          pass
+          #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
+
 
       return cmsEvents()

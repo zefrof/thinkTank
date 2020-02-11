@@ -5,7 +5,7 @@ function duplicate() {
     var clone = og.cloneNode(true);
 
     clone.id = "deck" + ++i;
-    
+
     var inputs = clone.getElementsByTagName('input');
     for(var k = 0; k < inputs.length; k++) {
         inputs[k].id += i;
@@ -35,11 +35,9 @@ function xhrHandler(form) {
 	var xhr = new XMLHttpRequest();
 	//xhr.onload = function() { }
 	xhr.open(form.method, form.action);
-	xhr.send(new FormData (form)); 
+	xhr.send(new FormData (form));
 
     console.log("Done");
-
-	return false;
 }
 
 function xhrAjax(arch, format) {
@@ -60,7 +58,7 @@ function xhrAjax(arch, format) {
 function deckAjax(id) {
     /*  console.log(arch);
      console.log(format); */
- 
+
      var xhr = new XMLHttpRequest();
      xhr.open("GET", "../tournament/ajax.event.php?action=editEvent&id=" + id);
      xhr.onreadystatechange = function() {
