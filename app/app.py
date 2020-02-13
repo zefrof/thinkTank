@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request
-from classes import Database, Content, Event, Deck, Card
+from flask import Flask, render_template, request, session, flash
+from classes import Database, User, Content, Event, Deck, Card
 app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 @app.route('/')
 def home():
@@ -14,6 +15,32 @@ def deck(id = None):
 @app.route('/cms/')
 def cmsHome():
     return render_template('cmsIndex.html')
+
+@app.route('/login', methods = ['POST', 'GET'])
+def cmsLogin():
+    result = request.form
+
+    user = User()
+    sessionId = user.verifyUser(result['username'], result['password'])
+
+    if sessionId != False:
+        session['id'] = sessionId
+
+    return cmsEvents()
+
+@app.route('/createUser/', methods = ['POST', 'GET'])
+def createUser():
+    result = request.form
+
+    user = User()
+    check = user.createUser(result['username'], result['password'], result['vPass'])
+
+    if check == True:
+        flash('Account created')
+    elif check == False:
+        flash("Your username/password is too short (3/8) or passwords don't match")
+
+    return cmsHome()
 
 @app.route('/cmsevents/')
 @app.route('/cmsevents/<page>')

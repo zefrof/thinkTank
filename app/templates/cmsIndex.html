@@ -1,4 +1,19 @@
-{% extends "/inc/cmsLayout.html" %}
 {% block body %}
    <p>CMS index</p>
+
+   <form id="login" action="/login" method="post" onsubmit="xhrHandler(this)">
+      <input type="text" name="username" placeholder="Username">
+      <input type="password" name="password" placeholder="Password">
+
+      <input type="submit" class="success button" value="Submit"/>
+   </form>
+
+   <form id="createUser" action="/createUser" method="post" onsubmit="xhrHandler(this)">
+      <input type="text" name="username" placeholder="Username">
+      <input type="password" name="password" placeholder="Password">
+      <input type="password" name="vPass" placeholder="Verify Password">
+
+      <input type="submit" class="success button" value="Submit"/>
+   </form>
+
 {% endblock %}

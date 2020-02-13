@@ -1,4 +1,5 @@
-import time, json, requests, pymysql
+import time, json, requests, pymysql, string, random
+from passlib.hash import bcrypt
 
 class Card:
 
@@ -615,3 +616,43 @@ class Database:
 
     def __del__(self):
         self.con.close()
+
+class User:
+    def __init__(self):
+        pass
+
+    def createUser(self, username, password, vPass):
+        dbm = Database()
+
+        if len(username) < 3:
+            return False
+
+        if len(password) < 8:
+            return False
+
+        if password != vPass:
+            return False
+
+        password = bcrypt.hash(password)
+
+        with dbm.con:
+            dbm.cur.execute("INSERT INTO admin.users (username, password) VALUES (%s, %s)", (username, password))
+
+        return True
+
+    def verifyUser(self, username, password):
+        dbm = Database()
+
+        with dbm.con:
+            dbm.cur.execute("SELECT id FROM admin.users WHERE username = %s", (username, ))
+
+            if dbm.cur.rowcount == 1:
+                password = bcrypt.hash(password)
+                dbm.cur.execute("SELECT id FROM admin.users WHERE password = %s", (password, ))
+
+                if dbm.cur.rowcount == 1:
+                    return bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
+                else:
+                    return False
+            else:
+                return False
