@@ -651,7 +651,7 @@ class User:
                 fetch = dbm.cur.fetchone()
                 check = bcrypt.verify(password, fetch[0])
 
-                if dbm.cur.rowcount == 1:
+                if check == True:
                     sessionId = bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
                     dbm.cur.execute("UPDATE admin.users SET session = %s WHERE username = %s", (sessionId, username))
                     return sessionId
