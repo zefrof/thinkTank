@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, flash
+from flask import Flask, render_template, request, session, flash, redirect, url_for
 from classes import Database, User, Content, Event, Deck, Card
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -21,12 +21,13 @@ def cmsLogin():
     result = request.form
 
     user = User()
-    sessionId = user.verifyUser(result['username'], result['password'])
+    sessionId = user.loginUser(result['username'], result['password'])
 
     if sessionId != False:
         session['id'] = sessionId
-
-    return cmsEvents()
+        return redirect(url_for('cmsEvents'))
+    else:
+        return redirect(url_for('cmsHome'))
 
 @app.route('/createUser/', methods = ['POST', 'GET'])
 def createUser():
@@ -40,12 +41,18 @@ def createUser():
     elif check == False:
         flash("Your username/password is too short (3/8) or passwords don't match")
 
-    return cmsHome()
+    return redirect(url_for('cmsHome'))
 
 @app.route('/cmsevents/')
 @app.route('/cmsevents/<page>')
 def cmsEvents(page = 1):
     page = int(page)
+
+    user = User()
+    check = user.verifyUser(session['id'])
+
+    if check == False:
+        return redirect(url_for('cmsHome'))
 
     dbm = Database()
     cont = Content()
@@ -84,4 +91,4 @@ def saveEvent():
           #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
 
 
-      return cmsEvents()
+      return redirect(url_for('cmsEvents'))

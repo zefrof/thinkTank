@@ -640,19 +640,32 @@ class User:
 
         return True
 
-    def verifyUser(self, username, password):
+    def loginUser(self, username, password):
         dbm = Database()
 
         with dbm.con:
             dbm.cur.execute("SELECT id FROM admin.users WHERE username = %s", (username, ))
 
             if dbm.cur.rowcount == 1:
-                password = bcrypt.hash(password)
-                dbm.cur.execute("SELECT id FROM admin.users WHERE password = %s", (password, ))
+                dbm.cur.execute("SELECT password FROM admin.users WHERE username = %s", (username, ))
+                fetch = dbm.cur.fetchone()
+                check = bcrypt.verify(password, fetch[0])
 
                 if dbm.cur.rowcount == 1:
-                    return bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
+                    sessionId = bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
+                    dbm.cur.execute("UPDATE admin.users SET session = %s WHERE username = %s", (sessionId, username))
+                    return sessionId
                 else:
                     return False
+            else:
+                return False
+
+    def verifyUser(self, sessionId):
+        dbm = Database()
+
+        with dbm.con:
+            dbm.cur.execute("SELECT id FROM admin.users WHERE session = %s", (sessionId, ))
+            if dbm.cur.rowcount == 1:
+                return True
             else:
                 return False
