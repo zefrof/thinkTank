@@ -1,6 +1,6 @@
 - Add timeout to user login
 - Manage users by id instead of username to allow multiple of the same username
-- Properly 404 when there's no session
+- Properly redirect when there's no session
 - Add email entry to sign up
 - Setup password resets with email
 - Fix double faced cards on Front-End
