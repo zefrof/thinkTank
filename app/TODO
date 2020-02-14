@@ -3,5 +3,5 @@
 - Properly redirect when there's no session
 - Add email entry to sign up
 - Setup password resets with email
-- Fix double faced cards on Front-End
+- Fix double faced cards on Front-End (SELECT m.id, m.mediaUrl, m.altText FROM cardFace cf JOIN cardFaceToCard cfc ON cfc.cardFaceId = cf.id JOIN cards c ON c.id = cfc.cardId JOIN cardFaceToMedia cfm ON cfm.cardFaceId = cf.id JOIN media m ON m.id = cfm.mediaId WHERE c.id = ')
 - Save posted data for events
