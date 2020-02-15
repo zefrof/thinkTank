@@ -1,7 +1,22 @@
-<!doctype html>
-<title>Hello from Flask</title>
-{% if id %}
-  <h1>Hello {{ id }}!</h1>
-{% else %}
-  <h1>Hello World!</h1>
-{% endif %}
+{% extends "base.html" %}
+{% block content %}
+    <div class=" grid-container">
+        <div class="grid-x grid-padding-x">
+            <div class="cell">
+                <h2>{{deck.finish}}</h2>
+                <h3>{{deck.name}} - {{deck.archtype}}</h3>
+                <h4>{{deck.pilot}}</h4>
+            </div>
+            <hr>
+            <div class="cell large-4">
+                {% for card in deck.cards %}{{card.copies}} <a>{{card.name}}</a>&#10;{% endfor %}
+            </div>
+            <div class="cell large-4 centerBorders">
+            
+            </div>
+            <div class="cell large-4 vertCenter hideSmall" id="cardImg">
+                <img src="/img/cardBack.png">
+            </div>
+        </div>
+    </div>
+{% endblock %}
