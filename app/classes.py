@@ -521,10 +521,8 @@ class Deck:
                         face.altText = f[2]
                         card.faces.append(face)
 
-                    if card.sideboard == 0:
-                        self.cards.append(card)
-                    elif card.sideboard == 1:
-                        self.sideboard.append(card)
+                    self.cards.append(card)
+    
 
     def toString(self):
         s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)

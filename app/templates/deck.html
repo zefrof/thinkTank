@@ -9,10 +9,10 @@
             </div>
             <hr>
             <div class="cell large-4">
-                {% for card in deck.cards %}{{card.copies}} <a>{{card.name}}</a>&#10;{% endfor %}
+              {% for x in range((((deck.cards | length) / 2) | round) | int) %}{{deck.cards[x].copies}} <a>{{deck.cards[x].name}}</a><br>{% endfor %}
             </div>
             <div class="cell large-4 centerBorders">
-            
+              {% for x in range((((deck.cards | length) / 2) | round) | int, deck.cards | length) %}{{deck.cards[x].copies}} <a>{{deck.cards[x].name}}</a><br>{% endfor %}
             </div>
             <div class="cell large-4 vertCenter hideSmall" id="cardImg">
                 <img src="/img/cardBack.png">
