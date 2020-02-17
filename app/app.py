@@ -34,7 +34,7 @@ def createUser():
     result = request.form
 
     user = User()
-    check = user.createUser(result['username'], result['password'], result['vPass'])
+    check = user.createUser(result['username'], result['email'], result['password'], result['vPass'])
 
     if check == True:
         flash('Account created')
@@ -49,7 +49,11 @@ def cmsEvents(page = 1):
     page = int(page)
 
     user = User()
-    check = user.verifyUser(session['id'])
+
+    try:
+        check = user.verifyUser(session['id'])
+    except:
+        return redirect(url_for('cmsHome'))
 
     if check == False:
         return redirect(url_for('cmsHome'))

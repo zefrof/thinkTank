@@ -1,15 +1,16 @@
 {% block body %}
    <p>CMS index</p>
 
-   <form id="login" action="/login" method="post" onsubmit="xhrHandler(this)">
+   <form id="login" action="/login" method="post">
       <input type="text" name="username" placeholder="Username">
       <input type="password" name="password" placeholder="Password">
 
       <input type="submit" class="success button" value="Submit">
    </form>
 
-   <form id="createUser" action="/createUser" method="post" onsubmit="xhrHandler(this)">
+   <form id="createUser" action="/createUser" method="post">
       <input type="text" name="username" placeholder="Username">
+      <input type="email" name="email" placeholder="Email">
       <input type="password" name="password" placeholder="Password">
       <input type="password" name="vPass" placeholder="Verify Password">
 

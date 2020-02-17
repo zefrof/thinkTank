@@ -621,7 +621,7 @@ class User:
     def __init__(self):
         pass
 
-    def createUser(self, username, password, vPass):
+    def createUser(self, username, email, password, vPass):
         dbm = Database()
 
         if len(username) < 3:
@@ -636,7 +636,7 @@ class User:
         password = bcrypt.hash(password)
 
         with dbm.con:
-            dbm.cur.execute("INSERT INTO admin.users (username, password) VALUES (%s, %s)", (username, password))
+            dbm.cur.execute("INSERT INTO admin.users (username, email, password) VALUES (%s, %s)", (username, email, password))
 
         return True
 
@@ -653,7 +653,7 @@ class User:
 
                 if check == True:
                     sessionId = bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
-                    dbm.cur.execute("UPDATE admin.users SET session = %s WHERE username = %s", (sessionId, username))
+                    dbm.cur.execute("UPDATE admin.users SET session = %s, lastLogin = %s WHERE username = %s", (sessionId, int(time.time()), username))
                     return sessionId
                 else:
                     return False
@@ -664,8 +664,12 @@ class User:
         dbm = Database()
 
         with dbm.con:
-            dbm.cur.execute("SELECT id FROM admin.users WHERE session = %s", (sessionId, ))
+            dbm.cur.execute("SELECT lastLogin FROM admin.users WHERE session = %s", (sessionId, ))
+            fetch = dbm.cur.fetchone()
             if dbm.cur.rowcount == 1:
-                return True
+                if fetch[0] < (int(time.time()) - 1800):
+                    return False
+                else:
+                    return True
             else:
                 return False
