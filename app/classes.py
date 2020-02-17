@@ -531,6 +531,14 @@ class Deck:
                             creature = True
                             break
 
+                        if "Planeswalker" in card.typeLine and walker == False:
+                            tmp = Card()
+                            tmp.name = "Planeswalker"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            walker = True
+                            break
+
                         if "Instant" in card.typeLine and spell == False:
                             tmp = Card()
                             tmp.name = "Spells"
@@ -576,6 +584,12 @@ class Deck:
                             tmp.name = "Sideboard"
                             tmp.copies = 0
                             self.cards.append(tmp)
+                            creature = True
+                            spell = True
+                            enchant = True
+                            artifact = True
+                            land = True
+                            walker = True
                             sideboard = True
                             break
 
