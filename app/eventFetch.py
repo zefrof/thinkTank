@@ -32,6 +32,10 @@ def main():
             index += 1
             continue
 
+        if index == end:
+            print(index)
+            break
+
         event = Event()
 
         text = BeautifulSoup(page.content, features="html.parser")
@@ -138,16 +142,10 @@ def main():
                         deck.cards.append(card)
 
                         mainboard += numbahs[x]
-
             except:
                 pass
 
         event.commitEvent(dbm)
-
-        if index == end:
-            break
-
-        print(index)
 
         index += 1
 
