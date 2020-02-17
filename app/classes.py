@@ -499,30 +499,100 @@ class Deck:
             if full == 1:
                 pass
             else:
-                dbm.cur.execute("SELECT c.id, c.name, c.manaCost, m.mediaUrl, m.altText, cd.copies, cd.sideboard FROM cards c JOIN mediaToCard mc ON mc.cardId = c.id JOIN media m ON m.id = mc.mediaId JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (cid, ))
+                dbm.cur.execute("SELECT c.id, c.name, c.typeLine, c.manaCost, m.mediaUrl, m.altText, cd.copies, cd.sideboard FROM cards c LEFT JOIN mediaToCard mc ON mc.cardId = c.id LEFT JOIN media m ON m.id = mc.mediaId JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (cid, ))
                 fetch = dbm.cur.fetchall()
+
+                creature = False
+                spell = False
+                enchant = False
+                artifact = False
+                land = False
+                walker = False
+                sideboard = False
 
                 for c in fetch:
                     card = Card()
                     card.scryfallId = c[0]
                     card.name = c[1]
-                    card.manaCost = c[2]
-                    card.imageUrl = c[3]
-                    card.altText = c[4]
-                    card.copies = int(c[5])
-                    card.sideboard = int(c[6])
+                    card.typeLine = c[2]
+                    card.manaCost = c[3]
+                    card.imageUrl = c[4]
+                    card.altText = c[5]
+                    card.copies = int(c[6])
+                    card.sideboard = int(c[7])
 
-                    dbm.cur.execute("SELECT m.id, m.mediaUrl, m.altText FROM cardFace cf JOIN cardFaceToCard cfc ON cfc.cardFaceId = cf.id JOIN cards c ON c.id = cfc.cardId JOIN cardFaceToMedia cfm ON cfm.cardFaceId = cf.id JOIN media m ON m.id = cfm.mediaId WHERE c.id = %s ", (card.scryfallId, ))
+                    while(True):
+
+                        if "Creature" in card.typeLine and creature == False:
+                            tmp = Card()
+                            tmp.name = "Creatures"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            creature = True
+                            break
+
+                        if "Instant" in card.typeLine and spell == False:
+                            tmp = Card()
+                            tmp.name = "Spells"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            spell = True
+                            break
+
+                        if "Sorcery" in card.typeLine and spell == False:
+                            tmp = Card()
+                            tmp.name = "Spells"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            spell = True
+                            break
+
+                        if "Land" in card.typeLine and land == False:
+                            tmp = Card()
+                            tmp.name = "Land"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            land = True
+                            break
+
+                        if "Enchantment" in card.typeLine and enchant == False:
+                            tmp = Card()
+                            tmp.name = "Enchantment"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            enchant = True
+                            break
+
+                        if "Artifact" in card.typeLine and artifact == False:
+                            tmp = Card()
+                            tmp.name = "Artifact"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            artifact = True
+                            break
+
+                        if card.sideboard == 1 and sideboard == False:
+                            tmp = Card()
+                            tmp.name = "Sideboard"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            sideboard = True
+                            break
+
+                        break
+
+                    dbm.cur.execute("SELECT cf.name, m.mediaUrl, m.altText FROM cardFace cf JOIN cardFaceToCard cfc ON cfc.cardFaceId = cf.id JOIN cards c ON c.id = cfc.cardId JOIN cardFaceToMedia cfm ON cfm.cardFaceId = cf.id JOIN media m ON m.id = cfm.mediaId WHERE c.id = %s ", (card.scryfallId, ))
                     fetch2 = dbm.cur.fetchall()
 
                     for f in fetch2:
                         face = Face()
+                        face.name = f[0]
                         face.imageUrl = f[1]
                         face.altText = f[2]
                         card.faces.append(face)
 
                     self.cards.append(card)
-    
+
 
     def toString(self):
         s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)

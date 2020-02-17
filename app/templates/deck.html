@@ -9,10 +9,24 @@
             </div>
             <hr>
             <div class="cell large-4">
-              {% for x in range((((deck.cards | length) / 2) | round) | int) %}{{deck.cards[x].copies}} <a>{{deck.cards[x].name}}</a><br>{% endfor %}
+              {% for x in range((((deck.cards | length) / 2) | round) | int) %}
+                {% if deck.cards[x].copies == 0 %}
+                    <h5 class="listType">{{deck.cards[x].name}}</h5>
+                {% elif deck.cards[x].faces | length > 0 %}
+                    {{deck.cards[x].copies}} <a href="{{deck.cards[x].faces[0].imageUrl}}" alt="{{deck.cards[x].faces[0].altText}}">{{deck.cards[x].faces[0].name}}</a> // <a href="{{deck.cards[x].faces[1].imageUrl}}" alt="{{deck.cards[x].faces[1].altText}}">{{deck.cards[x].faces[1].name}}</a><br>
+                {% else %}
+                    {{deck.cards[x].copies}} <a href="{{deck.cards[x].imageUrl}}" alt="{{deck.cards[x].altText}}">{{deck.cards[x].name}}</a><br>
+                {% endif %}
+              {% endfor %}
             </div>
             <div class="cell large-4 centerBorders">
-              {% for x in range((((deck.cards | length) / 2) | round) | int, deck.cards | length) %}{{deck.cards[x].copies}} <a>{{deck.cards[x].name}}</a><br>{% endfor %}
+              {% for x in range((((deck.cards | length) / 2) | round) | int, deck.cards | length) %}
+                {% if deck.cards[x].copies == 0 %}
+                    <h5 class="listType">{{deck.cards[x].name}}</h5>
+                {% else %}
+                    {{deck.cards[x].copies}} <a href="{{deck.cards[x].imageUrl}}" alt="{{deck.cards[x].altText}}">{{deck.cards[x].name}}</a><br>
+                {% endif %}
+              {% endfor %}
             </div>
             <div class="cell large-4 vertCenter hideSmall" id="cardImg">
                 <img src="/img/cardBack.png">
