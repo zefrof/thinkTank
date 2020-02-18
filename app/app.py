@@ -84,14 +84,29 @@ def saveEvent():
     if request.method == 'POST':
       result = request.form
 
+      print(result)
+
+      event = Event()
+      event.name = result['eventName']
+      event.date = result['eventDate']
+      event.format = result['format']
+      event.numPlayers = int(result['numPlayers'])
       #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
 
       deckNames = result.getlist('deckName')
       deckPilot = result.getlist('deckPilot')
       finish = result.getlist('finish')
       ark = result.getlist('archetype')
+      mainboard = result.getlist('mainboard')
+      sideboard = result.getlist('sideboard')
       for i in range(len(deckNames)):
-          pass
+          deck = Deck()
+          deck.name = deckNames[i]
+          deck.pilot = deckPilot[i]
+          deck.finish = finish[i]
+          deck.archetype = ark[i]
+
+          event.decks.append(deck)
           #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
 
 
