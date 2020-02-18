@@ -537,7 +537,10 @@ class Event:
             dbm.cur.execute("SELECT e.name, e.date FROM events e JOIN eventToFormat etf ON etf.eventId = e.id JOIN formats f ON f.id = etf.formatId WHERE e.name = %s AND e.date = %s AND f.name = %s ", (self.name, self.date, self.format))
 
             if dbm.cur.rowcount == 1:
-                print("!!! %s on %s already exists" % (self.name, self.date))
+                print("!!! %s on %s in format %s already exists" % (self.name, self.date, self.format))
+                return True
+            elif dbm.cur.rowcount > 1:
+                print("### %s on %s in format %s has dublicates" % (self.name, self.date, self.format))
                 return True
             else:
                 return False
