@@ -1,3 +1,4 @@
 - Manage users by id or a login name instead of username to allow multiple of the same username
 - Setup password resets with email
 - Save posted data for events
+- Return a random print of a card for deck connections? -> ORDER BY rand()

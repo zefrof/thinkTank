@@ -173,7 +173,7 @@ class Card:
     def getCard(self, dbm, cid, full = 0):
         with dbm.con:
             if full == 1:
-                dbm.cur.execute("SELECT c.* FROM cards c WHERE c.id = %s", (cid, ))
+                dbm.cur.execute("SELECT c.* FROM cards c WHERE c.id = %s LIMIT 1", (cid, ))
                 fetch = dbm.cur.fetchone()
 
                 self.scryfallId = fetch[0]
@@ -201,7 +201,7 @@ class Card:
                 self.artist = fetch[22]
                 self.textless = fetch[23]
             elif full == 0:
-                dbm.cur.execute("SELECT c.id, c.name FROM cards c WHERE c.id = %s", (cid, ))
+                dbm.cur.execute("SELECT c.id, c.name FROM cards c WHERE c.id = %s LIMIT 1", (cid, ))
                 fetch = dbm.cur.fetchone()
 
                 self.scryfallId = fetch[0]
@@ -523,6 +523,8 @@ class Event:
             for deck in self.decks:
                 deck.commitDeck(dbm, eventId)
 
+            print("### Inserted %s on %s in format %s" % (self.name, self.date, self.format))
+
     def eventToFormat(self, dbm, eventId):
         with dbm.con:
             try:
@@ -542,13 +544,13 @@ class Event:
     def eventExists(self, dbm):
         with dbm.con:
 
-            dbm.cur.execute("SELECT e.name, e.date FROM events e JOIN eventToFormat etf ON etf.eventId = e.id JOIN formats f ON f.id = etf.formatId WHERE e.name = %s AND e.date = %s AND f.name = %s ", (self.name, self.date, self.format))
+            dbm.cur.execute("SELECT e.id FROM events e JOIN eventToFormat etf ON etf.eventId = e.id JOIN formats f ON f.id = etf.formatId WHERE e.name = %s AND e.date = %s AND f.name = %s ", (self.name, self.date, self.format))
 
             if dbm.cur.rowcount == 1:
                 print("!!! %s on %s in format %s already exists" % (self.name, self.date, self.format))
                 return True
             elif dbm.cur.rowcount > 1:
-                print("### %s on %s in format %s has dublicates" % (self.name, self.date, self.format))
+                print("&&& %s on %s in format %s has duplicates" % (self.name, self.date, self.format))
                 return True
             else:
                 return False

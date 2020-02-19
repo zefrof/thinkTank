@@ -26,6 +26,7 @@ def main():
     while errCount < 5:
         page = requests.get(url + str(index))
 
+        #Probably not needed
         if(page.status_code == 404):
             print("404 Error at: %d" % (index))
             errCount += 1
@@ -61,6 +62,7 @@ def main():
         event.name = text.find('h3').text
 
         if event.name == "":
+            errCount += 1
             index += 1
             continue
 
