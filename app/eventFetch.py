@@ -130,7 +130,7 @@ def main():
                     for x in range(len(names)):
                         card = Card()
                         cid = card.getCardId(names[x], dbm)
-                        card.getCard(cid, dbm)
+                        card.getCard(dbm, cid, 0)
 
                         if mainboard < total:
                             sideboard = 0

@@ -14,6 +14,14 @@ def deck(id = None):
 
 @app.route('/cms/')
 def cmsHome():
+    user = User()
+    try:
+        check = user.verifyUser(session['id'])
+        if check == True:
+            return redirect(url_for('cmsEvents'))
+    except:
+        pass
+
     return render_template('cmsIndex.html')
 
 @app.route('/login', methods = ['POST', 'GET'])
@@ -72,6 +80,12 @@ def cmsEvents(page = 1):
 @app.route('/editevent/<cid>')
 def editEvent(cid):
     dbm = Database()
+    user = User()
+
+    try:
+        check = user.verifyUser(session['id'])
+    except:
+        return redirect(url_for('cmsHome'))
 
     event = Event()
     event.getEvent(dbm, cid, 1)
@@ -110,15 +124,19 @@ def saveEvent():
             side = sideboard[i].splitlines()
 
             for c in main:
+                spl = c.split(' ', 1)
                 card = Card()
-                cid = card.getCardId(c, dbm)
-                card.getCard(cid, dbm)
+                cid = card.getCardId(spl[1], dbm)
+                card.getCard(dbm, cid, 0)
+                card.copies = spl[0]
                 deck.cards.append(card)
 
             for c in side:
+                spl = c.split(' ', 1)
                 card = Card()
-                cid = card.getCardId(c, dbm)
-                card.getCard(cid, dbm)
+                cid = card.getCardId(spl[1], dbm)
+                card.getCard(dbm, cid, 0)
+                card.copies = spl[0]
                 deck.cards.append(card)
 
             event.decks.append(deck)

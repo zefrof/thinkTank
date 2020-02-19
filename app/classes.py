@@ -170,35 +170,42 @@ class Card:
         except:
             pass
 
-    def getCard(self, cid, dbm):
+    def getCard(self, dbm, cid, full = 0):
         with dbm.con:
-            dbm.cur.execute("SELECT c.* FROM cards c WHERE c.id = %s", (cid, ))
-            fetch = dbm.cur.fetchone()
+            if full == 1:
+                dbm.cur.execute("SELECT c.* FROM cards c WHERE c.id = %s", (cid, ))
+                fetch = dbm.cur.fetchone()
 
-            self.scryfallId = fetch[0]
-            self.name = fetch[1]
-            self.releaseDate = fetch[2]
-            self.layout = fetch[3]
-            self.manaCost = fetch[4]
-            self.cmc = fetch[5]
-            self.typeLine = fetch[6]
-            self.oracleText = fetch[7]
-            self.flavorText = fetch[8]
-            self.power = fetch[9]
-            self.toughness = fetch[10]
-            self.loyalty = fetch[11]
-            self.reserved = fetch[12]
-            self.foil = fetch[13]
-            self.nonfoil = fetch[14]
-            self.oversized = fetch[15]
-            self.promo = fetch[16]
-            self.reprint = fetch[17]
-            self.variation = fetch[18]
-            self.collectorNumber = fetch[19]
-            self.rarity = fetch[20]
-            self.watermark = fetch[21]
-            self.artist = fetch[22]
-            self.textless = fetch[23]
+                self.scryfallId = fetch[0]
+                self.name = fetch[1]
+                self.releaseDate = fetch[2]
+                self.layout = fetch[3]
+                self.manaCost = fetch[4]
+                self.cmc = fetch[5]
+                self.typeLine = fetch[6]
+                self.oracleText = fetch[7]
+                self.flavorText = fetch[8]
+                self.power = fetch[9]
+                self.toughness = fetch[10]
+                self.loyalty = fetch[11]
+                self.reserved = fetch[12]
+                self.foil = fetch[13]
+                self.nonfoil = fetch[14]
+                self.oversized = fetch[15]
+                self.promo = fetch[16]
+                self.reprint = fetch[17]
+                self.variation = fetch[18]
+                self.collectorNumber = fetch[19]
+                self.rarity = fetch[20]
+                self.watermark = fetch[21]
+                self.artist = fetch[22]
+                self.textless = fetch[23]
+            elif full == 0:
+                dbm.cur.execute("SELECT c.id, c.name FROM cards c WHERE c.id = %s", (cid, ))
+                fetch = dbm.cur.fetchone()
+
+                self.scryfallId = fetch[0]
+                self.name = fetch[0]
 
     def getCardId(self, name, dbm):
         with dbm.con:
@@ -688,9 +695,9 @@ class User:
             fetch = dbm.cur.fetchone()
             if dbm.cur.rowcount == 1:
                 if fetch[0] < (int(time.time()) - 1800):
-                    dbm.cur.execute("UPDATE admin.users SET lastLogin = %s WHERE username = %s", (int(time.time()), self.username))
                     return False
                 else:
+                    dbm.cur.execute("UPDATE admin.users SET lastLogin = %s WHERE username = %s", (int(time.time()), self.username))
                     return True
             else:
                 return False
