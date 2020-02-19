@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, session, flash, redirect, url_for
 from classes import Database, User, Content, Event, Deck, Card
 app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.secret_key = b"\xf0/\xa1\xdb'\xfe!\xf68#\xb1\x19\x18\x01\xfb\x0f"
 
 @app.route('/')
 def home():
@@ -47,7 +47,6 @@ def createUser():
 @app.route('/cmsevents/<page>')
 def cmsEvents(page = 1):
     page = int(page)
-
     user = User()
 
     try:
@@ -82,32 +81,58 @@ def editEvent(cid):
 @app.route('/saveevent/', methods = ['POST', 'GET'])
 def saveEvent():
     if request.method == 'POST':
-      result = request.form
+        result = request.form
+        dbm = Database()
 
-      print(result)
+        #print(result)
 
-      event = Event()
-      event.name = result['eventName']
-      event.date = result['eventDate']
-      event.format = result['format']
-      event.numPlayers = int(result['numPlayers'])
-      #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
+        event = Event()
+        event.name = result['eventName']
+        event.date = result['eventDate']
+        event.format = result['format']
+        event.numPlayers = int(result['numPlayers'])
+        #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
 
-      deckNames = result.getlist('deckName')
-      deckPilot = result.getlist('deckPilot')
-      finish = result.getlist('finish')
-      ark = result.getlist('archetype')
-      mainboard = result.getlist('mainboard')
-      sideboard = result.getlist('sideboard')
-      for i in range(len(deckNames)):
-          deck = Deck()
-          deck.name = deckNames[i]
-          deck.pilot = deckPilot[i]
-          deck.finish = finish[i]
-          deck.archetype = ark[i]
+        deckNames = result.getlist('deckName')
+        deckPilot = result.getlist('deckPilot')
+        finish = result.getlist('finish')
+        ark = result.getlist('archetype')
+        mainboard = result.getlist('mainboard')
+        sideboard = result.getlist('sideboard')
+        for i in range(len(deckNames)):
+            deck = Deck()
+            deck.name = deckNames[i]
+            deck.pilot = deckPilot[i]
+            deck.finish = finish[i]
+            deck.archetype = ark[i]
 
-          event.decks.append(deck)
-          #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
+            main = mainboard[i].splitlines()
+            side = sideboard[i].splitlines()
 
+            for c in main:
+                card = Card()
+                cid = card.getCardId(c, dbm)
+                card.getCard(cid, dbm)
+                deck.cards.append(card)
 
-      return redirect(url_for('cmsEvents'))
+            for c in side:
+                card = Card()
+                cid = card.getCardId(c, dbm)
+                card.getCard(cid, dbm)
+                deck.cards.append(card)
+
+            event.decks.append(deck)
+            #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
+        #event.commitEvent(dbm)
+
+    return redirect(url_for('cmsEvents'))
+
+@app.route('/searchevent/', methods = ['POST', 'GET'])
+def searchEvent():
+    dbm = Database()
+    result = request.form
+
+    cont = Content()
+    events = cont.searchEventNames(dbm, result['name'])
+
+    return render_template('cmsEvents.html', events = events, page = 1)

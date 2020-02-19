@@ -505,6 +505,7 @@ class Event:
         self.cid = 0
 
     def commitEvent(self, dbm):
+        """ Commits an event to the database """
         with dbm.con:
 
             dbm.cur.execute("INSERT INTO events (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
@@ -601,7 +602,19 @@ class Content:
 
         return events
 
+    def searchEventNames(self, dbm, name):
+        events = []
+        name = "%" + name + "%"
+        with dbm.con:
+            dbm.cur.execute("SELECT id FROM `events` WHERE `name` LIKE %s", (name, ))
+            fetch = dbm.cur.fetchall()
 
+            for x in fetch:
+                event = Event()
+                event.getEvent(dbm, x)
+                events.append(event)
+
+        return events
 
 class Database:
     def __init__(self):
@@ -622,7 +635,7 @@ class Database:
 
 class User:
     def __init__(self):
-        pass
+        self.username = ""
 
     def createUser(self, username, email, password, vPass):
         dbm = Database()
@@ -634,6 +647,9 @@ class User:
             return False
 
         if password != vPass:
+            return False
+
+        if len(email) <= 0:
             return False
 
         password = bcrypt.hash(password)
@@ -657,6 +673,7 @@ class User:
                 if check == True:
                     sessionId = bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
                     dbm.cur.execute("UPDATE admin.users SET session = %s, lastLogin = %s WHERE username = %s", (sessionId, int(time.time()), username))
+                    self.username = username
                     return sessionId
                 else:
                     return False
@@ -671,6 +688,7 @@ class User:
             fetch = dbm.cur.fetchone()
             if dbm.cur.rowcount == 1:
                 if fetch[0] < (int(time.time()) - 1800):
+                    dbm.cur.execute("UPDATE admin.users SET lastLogin = %s WHERE username = %s", (int(time.time()), self.username))
                     return False
                 else:
                     return True
