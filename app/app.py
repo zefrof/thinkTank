@@ -81,16 +81,21 @@ def cmsEvents(page = 1):
 def editEvent(cid):
     dbm = Database()
     user = User()
+    cont = Content()
 
     try:
         check = user.verifyUser(session['id'])
     except:
         return redirect(url_for('cmsHome'))
 
+    formats = cont.getFormats(dbm, 1)
+    ark = cont.getArk(dbm, 1)
+
     event = Event()
+    event.cid = cid
     event.getEvent(dbm, cid, 1)
 
-    return render_template('editEvent.html', event = event)
+    return render_template('editEvent.html', event = event, formats = formats, ark = ark)
 
 @app.route('/saveevent/', methods = ['POST', 'GET'])
 def saveEvent():
@@ -98,15 +103,17 @@ def saveEvent():
         result = request.form
         dbm = Database()
 
-        #print(result)
+        #print(result.getlist('pid'))
 
         event = Event()
+        event.cid = result['cid']
         event.name = result['eventName']
         event.date = result['eventDate']
         event.format = result['format']
         event.numPlayers = int(result['numPlayers'])
         #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
 
+        deckIds = result.getlist('did')
         deckNames = result.getlist('deckName')
         deckPilot = result.getlist('deckPilot')
         finish = result.getlist('finish')
@@ -115,6 +122,7 @@ def saveEvent():
         sideboard = result.getlist('sideboard')
         for i in range(len(deckNames)):
             deck = Deck()
+            deck.cid = deckIds[i]
             deck.name = deckNames[i]
             deck.pilot = deckPilot[i]
             deck.finish = finish[i]
@@ -124,24 +132,23 @@ def saveEvent():
             side = sideboard[i].splitlines()
 
             for c in main:
-                spl = c.split(' ', 1)
+                spl = c.split(' | ')
                 card = Card()
-                cid = card.getCardId(spl[1], dbm)
-                card.getCard(dbm, cid, 0)
                 card.copies = spl[0]
+                card.scryfallId = spl[2]
                 deck.cards.append(card)
 
             for c in side:
-                spl = c.split(' ', 1)
+                spl = c.split(' | ')
                 card = Card()
-                cid = card.getCardId(spl[1], dbm)
-                card.getCard(dbm, cid, 0)
                 card.copies = spl[0]
+                card.scryfallId = spl[2]
+                card.sideboard = 1
                 deck.cards.append(card)
 
             event.decks.append(deck)
             #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
-        #event.commitEvent(dbm)
+        event.updateEvent(dbm)
 
     return redirect(url_for('cmsEvents'))
 

@@ -464,33 +464,49 @@ class Deck:
 
         self.cid = 0
 
-    def commitDeck(self, dbm, eventId):
+    def commitDeck(self, dbm, eventId, new = 1):
         with dbm.con:
-            dbm.cur.execute("INSERT INTO decks (name, pilot, finish, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.pilot, self.finish, int(time.time())))
-            deckId = dbm.cur.lastrowid
+            if new == 1:
+                dbm.cur.execute("INSERT INTO decks (name, pilot, finish, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.pilot, self.finish, int(time.time())))
+                deckId = dbm.cur.lastrowid
 
-            self.deckToEvent(dbm, deckId, eventId)
-            self.commitArchetype(dbm, deckId)
+                self.deckToEvent(dbm, deckId, eventId)
+                self.commitArchetype(dbm, deckId)
 
-            for card in self.cards:
-                card.cardToDeck(dbm, deckId)
+                for card in self.cards:
+                    card.cardToDeck(dbm, deckId)
+            elif new == 0:
+                dbm.cur.execute("UPDATE decks SET name = %s, pilot = %s, finish = %s WHERE id = %s", (self.name, self.pilot, self.finish, self.cid))
+
+                self.deckToEvent(dbm, self.cid, eventId)
+                self.commitArchetype(dbm, self.cid, 0)
+
+                dbm.cur.execute("DELETE FROM cardToDeck WHERE deckId = %s", (self.cid, ))
+                for card in self.cards:
+                    card.cardToDeck(dbm, self.cid)
 
     def deckToEvent(self, dbm, deckId, eventId):
         with dbm.con:
             dbm.cur.execute("INSERT INTO deckToEvent (deckId, eventId) VALUES (%s, %s)", (deckId, eventId))
 
-    def commitArchetype(self, dbm, deckId):
+    def commitArchetype(self, dbm, deckId, new = 1):
         with dbm.con:
-            dbm.cur.execute("SELECT id FROM archetypes WHERE name = %s", (self.archetype, ))
-
-            if dbm.cur.rowcount == 0:
-                dbm.cur.execute("INSERT INTO archetypes (name, active) VALUES (%s, %s)", (self.archetype, 1))
+            if new == 1:
                 dbm.cur.execute("SELECT id FROM archetypes WHERE name = %s", (self.archetype, ))
 
-            tmp = dbm.cur.fetchone()
-            arkId = tmp[0]
+                if dbm.cur.rowcount == 0:
+                    dbm.cur.execute("INSERT INTO archetypes (name, active) VALUES (%s, %s)", (self.archetype, 1))
+                    dbm.cur.execute("SELECT id FROM archetypes WHERE name = %s", (self.archetype, ))
 
-            dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (arkId, deckId))
+                tmp = dbm.cur.fetchone()
+                arkId = tmp[0]
+
+                dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (arkId, deckId))
+            elif new == 0:
+                dbm.cur.execute("DELETE FROM archetypeToDeck WHERE deckId = %s", (deckId, ))
+
+                #self.archetype is set to the ID in saveEvent (app.py), so fetching the ID from the name isn't necessary
+                dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (self.archetype, deckId))
 
     def toString(self):
         s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)
@@ -525,21 +541,37 @@ class Event:
 
             print("### Inserted %s on %s in format %s" % (self.name, self.date, self.format))
 
-    def eventToFormat(self, dbm, eventId):
+    def updateEvent(self, dbm):
         with dbm.con:
-            try:
-                dbm.cur.execute("SELECT id FROM formats WHERE name = %s", (self.format, ))
-                tmp = dbm.cur.fetchone()
-                formatId = tmp[0]
+            dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s WHERE id = %s", (self.name, self.date, self.numPlayers, self.cid))
 
-                dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
-            except:
-                print("!!! The %s format didn't exist for event %s on %s" % (self.format, self.name, self.date))
+            self.eventToFormat(dbm, self.cid, 0)
 
-                dbm.cur.execute("INSERT INTO formats (name, active) VALUES (%s, 0)", (self.format, ))
-                formatId = dbm.cur.lastrowid
+            dbm.cur.execute("DELETE FROM deckToEvent WHERE eventId = %s", (self.cid, ))
+            for deck in self.decks:
+                deck.commitDeck(dbm, self.cid, 0)
 
-                dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+    def eventToFormat(self, dbm, eventId, new = 1):
+        with dbm.con:
+            if new == 1:
+                try:
+                    dbm.cur.execute("SELECT id FROM formats WHERE name = %s", (self.format, ))
+                    tmp = dbm.cur.fetchone()
+                    formatId = tmp[0]
+
+                    dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+                except:
+                    print("!!! The %s format didn't exist for event %s on %s" % (self.format, self.name, self.date))
+
+                    dbm.cur.execute("INSERT INTO formats (name, active) VALUES (%s, 0)", (self.format, ))
+                    formatId = dbm.cur.lastrowid
+
+                    dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, formatId))
+            elif new == 0:
+                dbm.cur.execute("DELETE FROM eventToFormat WHERE eventId = %s", (eventId, ))
+
+                #self.format is set to the ID in saveEvent (app.py), so fetching the ID from the name isn't necessary
+                dbm.cur.execute("INSERT INTO eventToFormat (eventId, formatId) VALUES (%s, %s)", (eventId, self.format))
 
     def eventExists(self, dbm):
         with dbm.con:
@@ -578,14 +610,15 @@ class Event:
                     deck.finish = d[3]
                     deck.archetype = d[6]
 
-                    dbm.cur.execute("SELECT c.name, cd.copies, cd.sideboard FROM cards c JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (deck.cid, ))
+                    dbm.cur.execute("SELECT c.id, c.name, cd.copies, cd.sideboard FROM cards c JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (deck.cid, ))
                     fetch2 = dbm.cur.fetchall()
 
                     for c in fetch2:
                         card = Card()
-                        card.name = c[0]
-                        card.copies = int(c[1])
-                        card.sideboard = int(c[2])
+                        card.scryfallId = c[0]
+                        card.name = c[1]
+                        card.copies = int(c[2])
+                        card.sideboard = int(c[3])
                         if card.sideboard == 0:
                             deck.cards.append(card)
                         elif card.sideboard == 1:
@@ -624,6 +657,32 @@ class Content:
                 events.append(event)
 
         return events
+
+    def getFormats(self, dbm, full = 0):
+        formats = {}
+        with dbm.con:
+            if full == 0:
+                pass
+            elif full == 1:
+                dbm.cur.execute("SELECT id, name FROM formats")
+                fetch = dbm.cur.fetchall()
+
+                for f in fetch:
+                    formats[f[0]] = f[1]
+            return formats
+
+    def getArk(self, dbm, full = 0):
+        ark = {}
+        with dbm.con:
+            if full == 0:
+                pass
+            elif full == 1:
+                dbm.cur.execute("SELECT id, name FROM archetypes ORDER BY name")
+                fetch = dbm.cur.fetchall()
+
+                for f in fetch:
+                    ark[f[0]] = f[1]
+            return ark
 
 class Database:
     def __init__(self):

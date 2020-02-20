@@ -19,7 +19,11 @@
                 </div>
                 <div class="cell small-12 medium-3 large-3">
                     <h6>Format</h6>
-                    <input type="text" name="format" value="{{event.format}}">
+                    <select name="format">
+                        {% for f in formats %}
+                            <option value="{{f}}" {% if formats[f] == event.format %} selected="selected" {% endif %}>{{formats[f]}}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
             {% for deck in event.decks %}
@@ -38,21 +42,27 @@
                     </div>
                     <div class="cell small-12 medium-3 large-3">
                         <h6>Archetype</h6>
-                        <input type="text" name="archetype" value="{{deck.archetype}}">
+                        <select name="archetype">
+                            {% for a in ark %}
+                                <option value="{{a}}" {% if ark[a] == deck.archetype %} selected="selected" {% endif %}>{{ark[a]}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
                 <div class="grid-x grid-padding-x">
                     <div class="cell small-12 medium-6 large-6">
                         <h6>Mainboard</h6>
-                        <textarea name="mainboard">{% for card in deck.cards %}{{card.copies}} {{card.name}}&#10;{% endfor %}</textarea>
+                        <textarea name="mainboard" cols="40" rows="10">{% for card in deck.cards %}{{card.copies}} | {{card.name}} | {{card.scryfallId}}&#10;{% endfor %}</textarea>
                     </div>
                     <div class="cell small-12 medium-6 large-6">
                         <h6>Sideboard</h6>
-                        <textarea name="sideboard">{% for card in deck.sideboard %}{{card.copies}} {{card.name}}&#10;{% endfor %}</textarea>
+                        <textarea name="sideboard" cols="40" rows="10">{% for card in deck.sideboard %}{{card.copies}} | {{card.name}} | {{card.scryfallId}}&#10;{% endfor %}</textarea>
                     </div>
                 </div>
+                <input type="hidden" name="did" value="{{ deck.cid }}">
             {% endfor %}
-            <input type="submit" class="success button" value="Submit">
+            <input type="hidden" name="cid" value="{{ event.cid }}">
+            <input type="submit" class="success button" value="Save">
         </form>
     </div>
 {% endblock %}

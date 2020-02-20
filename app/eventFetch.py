@@ -13,7 +13,7 @@ def main():
     end = 0
 
     with dbm.con:
-        dbm.cur.execute("SELECT `index` FROM scrapeInfo WHERE id = 1;")
+        dbm.cur.execute("SELECT `index` FROM scrapeInfo WHERE id = 1")
         tmp = dbm.cur.fetchone()
         print(tmp[0])
         index = tmp[0] - 3
@@ -25,6 +25,8 @@ def main():
 
     while errCount < 5:
         page = requests.get(url + str(index))
+
+        print(index)
 
         #Probably not needed
         if(page.status_code == 404):
