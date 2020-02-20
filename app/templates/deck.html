@@ -10,6 +10,8 @@
                 <h4>{{deck.pilot}}</h4>
             </div>
             <hr>
+        </div>
+        <div class="grid-x grid-padding-x">
             <div class="cell large-4">
               {% for x in range((((deck.cards | length) / 2) | round) | int) %}
                 {% if deck.cards[x].copies == 0 %}
