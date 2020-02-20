@@ -5,19 +5,19 @@
         <input type="text" name="name" placeholder="Search Event Names">
     </form>
     <div class="grid-x grid-margin-x">
-        <div class="cell small-4 medium-2 hideSmall"><!--For Spacing--></div>
-        <div class="cell small-4 medium-4 hideSmall"><h5>Name</h5></div>
-        <div class="cell small-4 medium-2 hideSmall"><h5>Date</h5></div>
-        <div class="cell small-6 medium-2 hideSmall"><h5>Number of Players</h5></div>
-        <div class="cell small-6 medium-2 hideSmall"><h5>Format</h5></div>
+        <div class="cell small-4 medium-2 hide-for-small-only"><!--Spacing--></div>
+        <div class="cell small-4 medium-4 hide-for-small-only"><h5>Name</h5></div>
+        <div class="cell small-4 medium-2 hide-for-small-only"><h5>Date</h5></div>
+        <div class="cell small-6 medium-2 hide-for-small-only"><h5>Number of Players</h5></div>
+        <div class="cell small-6 medium-2 hide-for-small-only"><h5>Format</h5></div>
     </div>
     {% for event in events %}
         <div class="grid-x grid-padding-x">
             <div class="cell small-4 medium-2"><a class="tiny button" href="/editevent/{{event.cid}}">Edit</a></div>
             <div class="cell small-8 medium-4">{{event.name}}</div>
-            <div class="cell small-8 medium-2 small-offset-4">{{event.date}}</div>
-            <div class="cell small-8 medium-2 small-offset-4 text-center">{{event.numPlayers}}</div>
-            <div class="cell small-8 medium-2 small-offset-4">{{event.format}}</div>
+            <div class="cell small-8 medium-2">{{event.date}}</div>
+            <div class="cell small-8 medium-2">{{event.numPlayers}}</div>
+            <div class="cell small-8 medium-2">{{event.format}}</div>
         </div>
     {% endfor %}
     <div class="grid-x grid-margin-x clearfix">
