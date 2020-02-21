@@ -725,15 +725,18 @@ class Content:
         decks = {}
         with dbm.con:
             dbm.cur.execute("SELECT e.id, e.name FROM events e JOIN deckToEvent de ON de.eventId = e.id WHERE de.deckId = %s", (deckId, ))
-            fetch = dbm.cur.fetchone()
+            if dbm.cur.rowcount == 1:
+                fetch = dbm.cur.fetchone()
 
-            dbm.cur.execute("SELECT d.id, d.name FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (fetch[0], ))
-            fetch = dbm.cur.fetchall()
+                dbm.cur.execute("SELECT d.id, d.name FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (fetch[0], ))
+                fetch = dbm.cur.fetchall()
 
-            for f in fetch:
-                decks[f[0]] = f[1]
+                for f in fetch:
+                    decks[f[0]] = f[1]
+            else:
+                print("!!! We have a deck (id: %s) not connected to an event" % (deckId))
 
-            return decks
+        return decks
 
 class Database:
     def __init__(self):

@@ -2,7 +2,7 @@
 {% block content %}
     <div class=" grid-container">
         <div class="grid-x grid-padding-x">
-            <select id="Decks">
+            <select id="Decks" onchange="changeDeck(this.value);">
                 {% for d in decks %}
                     <option value="{{d}}" {% if decks[d] == deck.name %} selected="selected" {% endif %}>{{decks[d]}}</option>
                 {% endfor %}
