@@ -3,7 +3,9 @@
     <div class=" grid-container">
         <div class="grid-x grid-padding-x">
             <select id="Decks">
-                <option value=""><a href="#"></a></option>
+                {% for d in decks %}
+                    <option value="{{d}}" {% if decks[d] == deck.name %} selected="selected" {% endif %}>{{decks[d]}}</option>
+                {% endfor %}
             </select>
             <div class="cell shrink">
                 <h1 class="placement">{{deck.finish}}</h1>
