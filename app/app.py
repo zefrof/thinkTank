@@ -15,7 +15,10 @@ def deck(cid = 0):
     deck = Deck()
     deck.getDeck(dbm, cid)
 
-    return render_template('deck.html', deck = deck)
+    cont = Content()
+    decks = cont.fetchDecksInEvent(dbm, cid)
+
+    return render_template('deck.html', deck = deck, decks = decks)
 
 @app.route('/event/')
 @app.route('/event/<cid>')
