@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="grid-container">
+        <div class="grid-x grid-padding-x">
+            <div class="cell large-4">
+                <h4>
+                    <a href=""><!-- Event Name --></a>
+                </h4>
+            </div>
+            <div class="cell large-2">
+                <a href="">
+                    <!-- Format -->
+                </a>
+            </div>
+            <div class="cell large-2">
+                <p>
+                    <!-- Event Type (If Possible) i.e. MTGO, SCG, GP, etc -->
+                </p>
+            </div>
+            <div class="cell large-2">
+                <p>
+                    <!-- Filler -->
+                </p>
+            </div>
+            <div class="cell large-2">
+                <p>
+                <!-- Filler Again -->
+                </p>
+            </div>
+            <hr>
+            <div class="cell alignCenter">
+                <!-- Page Numbers / Previous & Next -->
+                <nav aria-label="Pagination">
+                    <ul class="pagination text-center">
+                        <li class="pagination-previous disabled"></li>
+                        <li class="current">
+                            <span class="show-for-sr">
+                                You're on page
+                            </span>
+                            1
+                        </li>
+                        <li>
+                            <a href="" aria-label="Page 2">2</a>
+                        </li>
+                        <li>
+                            <a href="" aria-label="Page 3">3</a>
+                        </li>
+                        <li class="ellipsis"></li>
+                        <li>
+                            <a href="" aria-label="Page 10">10</a>
+                        </li>
+                        <li>
+                            <a href="" aria-label="Page 11">11</a>
+                        </li>
+                        <li>
+                            <a href="" aria-label="Page 12">12</a>
+                        </li>
+                        <li class="pagination-next">
+                            <a href="" aria-label="Next Page"></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/css/foundation.min.css" integrity="sha256-GSio8qamaXapM8Fq9JYdGNTvk/dgs+cMLgPeevOYEx0= sha384-wAweiGTn38CY2DSwAaEffed6iMeflc0FMiuptanbN4J+ib+342gKGpvYRWubPd/+ sha512-QHEb6jOC8SaGTmYmGU19u2FhIfeG+t/hSacIWPpDzOp5yygnthL3JwnilM7LM1dOAbJv62R+/FICfsrKUqv4Gg==" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/js/foundation.min.js" integrity="sha256-mRYlCu5EG+ouD07WxLF8v4ZAZYCA6WrmdIXyn1Bv9Vk= sha384-KzKofw4qqetd3kvuQ5AdapWPqV1ZI+CnfyfEwZQgPk8poOLWaabfgJOfmW7uI+AV sha512-0gHfaMkY+Do568TgjJC2iMAV0dQlY4NqbeZ4pr9lVUTXQzKu8qceyd6wg/3Uql9qA2+3X5NHv3IMb05wb387rA==" crossorigin="anonymous"></script>
+<script>$(document).foundation();</script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;500&display=swap" rel="stylesheet">
+<style>
+    /* Pagination Styling */
+    ul.pagination li {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        background-color: transparent;
+        color: #4A4A4A;
+    }
+    ul.pagination li.current {
+        background-color: #0598B9;
+        color: #F6F6F6;
+    }
+    ul.pagination li.current:hover, ul.pagination li.current: focus {
+        background-color: #023945;
+    }
+    
+    
+    /* General Styling */
+    body {
+        background-color: #F0F0F0;
+        color: #4A4A4A;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+    }
+    main {
+        background-color: #F0F0F0;
+        color: #4A4A4A;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+    }
+    body.grid-container {
+        background-color: #F0F0F0;
+        color: #4A4A4A;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+    }
+    h4 {
+        
+    }
+</style>
