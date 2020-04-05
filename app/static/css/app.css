@@ -188,6 +188,21 @@ nav a:hover, nav a:focus {
     display: none;
 }
 
+/* Pagination Styling */
+ul.pagination li {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    background-color: transparent;
+    color: #4A4A4A;
+}
+ul.pagination li.current {
+    background-color: #0598B9;
+    color: #F6F6F6;
+}
+ul.pagination li.current:hover, ul.pagination li.current: focus {
+    background-color: #023945;
+}
+
 /* Media Queries */
 @media only screen and (max-width: 600px) {
     .hideSmall {
