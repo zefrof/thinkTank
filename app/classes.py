@@ -626,6 +626,7 @@ class Event:
         self.decks = []
 
         self.cid = 0
+        self.firstPlaceDeckId = 0
 
     def commitEvent(self, dbm):
         with dbm.con:
@@ -707,16 +708,36 @@ class Content:
     def __init__(self):
         pass
 
-    def fetchEvents(self, dbm, page):
+    def fetchEvents(self, dbm, offset, fid = 0):
         events = []
+        if offset < 0:
+            offset = 0
+        
         with dbm.con:
-            offset = (page - 1) * 20
-            dbm.cur.execute("SELECT id FROM `events` WHERE active = 1 ORDER BY date DESC, name LIMIT %s, 20 ", (offset, ))
-            fetch = dbm.cur.fetchall()
+            if fid != 0:
+                dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id WHERE e.id > %s AND ef.formatId = %s AND e.active = 1 ORDER BY e.id LIMIT 20", (offset, fid))
+            else:
+                #needs to be fixed
+                dbm.cur.execute("SELECT id FROM `events` WHERE active = 1 ORDER BY date DESC, name LIMIT %s, 20 ", (offset, ))
+                fetch = dbm.cur.fetchall()
 
+                for x in fetch:
+                    event = Event()
+                    event.getEvent(dbm, x)
+                    events.append(event)
+
+            fetch = dbm.cur.fetchall()
             for x in fetch:
                 event = Event()
-                event.getEvent(dbm, x)
+                event.cid = x[0]
+                event.name = x[1]
+                event.date = x[2]
+                event.numPlayers = x[3]
+
+                dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.finish = 1 ", (event.cid, ))
+                fetch = dbm.cur.fetchone()
+                event.firstPlaceDeckId = fetch[0]
+
                 events.append(event)
 
         return events

@@ -21,6 +21,14 @@ def deck(cid = 0):
     return render_template('deck.html', deck = deck, decks = decks)
 
 @app.route('/event/')
-@app.route('/event/<cid>')
-def event(cid = None):
-    return render_template('event.html', id = id)
+@app.route('/event/<int:cid>/format/<int:fid>')
+def event(cid = 0, fid = 0):
+    dbm = Database()
+    cont = Content()
+
+    #print(cid)
+    #print(fid)
+    
+    events = cont.fetchEvents(dbm, cid, fid)
+    
+    return render_template('event.html', events = events, fid = fid, cid = cid)
