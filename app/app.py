@@ -31,4 +31,4 @@ def event(cid = 0, fid = 0):
     
     events = cont.fetchEvents(dbm, cid, fid)
     
-    return render_template('event.html', events = events, fid = fid, cid = cid)
+    return render_template('event.html', events = events, fid = fid, pcid = cont.pOffset)
