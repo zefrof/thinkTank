@@ -5,7 +5,15 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return 'Hello World!'
+    dbm = Database()
+    cont = Content()
+
+    events = cont.fetchRecentEvents(dbm)
+    
+    e1 = events[:9]
+    e2 = events[10:]
+
+    return render_template('index.html', e1 = e1, e2 = e2)
 
 @app.route('/deck/')
 @app.route('/deck/<cid>')

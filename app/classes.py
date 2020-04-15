@@ -710,6 +710,27 @@ class Content:
         self.offset = 0
         self.pOffset = 0
 
+    def fetchRecentEvents(self, dbm):
+        events = []
+        with dbm.con:
+            dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 AND date != 'Unknown' ORDER BY e.date DESC LIMIT 20 ")
+            fetch = dbm.cur.fetchall()
+
+            for x in fetch:
+                event = Event()
+                event.cid = x[0]
+                event.name = x[1]
+                event.date = x[2]
+                event.numPlayers = x[3]
+
+                dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.finish = 1 ", (event.cid, ))
+                f = dbm.cur.fetchone()
+                #event.firstPlaceDeckId = f[0]
+
+                events.append(event)
+
+            return events
+    
     def fetchEvents(self, dbm, offset, fid = 0):
         events = []
         if offset < 0:
@@ -744,7 +765,7 @@ class Content:
                 self.pOffset = 0
 
             #Fixes an off by 1 error
-            if self.pOffset = 1:
+            if self.pOffset == 1:
                 self.pOffset = 0
 
         return events

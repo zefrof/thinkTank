@@ -7,9 +7,49 @@
             </div>
             <div class="cell large-6 small-12">
                 <!-- List of Recent Events -->
+                {% for e in e1 %}
+                    <div class="cell large-6">
+                        <h4>
+                            <!-- Name -->
+                            <a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
+                        </h4>
+                    </div>
+                    <div class="cell large-2">
+                        <p>
+                            <!-- # of Players -->
+                            {{e.numPlayers}}
+                        </p>
+                    </div>
+                    <div class="cell large-4">
+                        <p>
+                            <!-- Date -->
+                            {{e.date}}
+                        </p>
+                    </div>
+                {% endfor %}
             </div>
             <div class="cell large-6 small-12">
                 <!-- List of Recent Events Cont -->
+                {% for e in e2 %}
+                    <div class="cell large-6">
+                        <h4>
+                            <!-- Name -->
+                            <a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
+                        </h4>
+                    </div>
+                    <div class="cell large-2">
+                        <p>
+                            <!-- # of Players -->
+                            {{e.numPlayers}}
+                        </p>
+                    </div>
+                    <div class="cell large-4">
+                        <p>
+                            <!-- Date -->
+                            {{e.date}}
+                        </p>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
