@@ -27,10 +27,12 @@ h4 {
 h5 {
     font-family: 'Open Sans', sans-serif;
     font-weight: 700;
+    font-size: 20px;
 }
 h6 {
     font-family: 'Open Sans', sans-serif;
     font-weight: 700;
+    font-size: 18px;
 }
 a {
     color: #1178DB;
@@ -41,40 +43,88 @@ a:hover, a :focus {
 }
 
 /* Header */
-header {
-    background-color: #1178DB;
-    color: #FCFCFC;
-}
+
 
 /* Footer */
 footer {
-    background-color: #062D52;
-    color: #FCFCFC;
-}
-footer a {
-    color: #FCFCFC;
-}
-footer a:hover {
-    
-}
+            background-color: #01181D;
+            color: #F6F6F6;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+        }
+        footer h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+        footer a {
+            color: #F6F6F6;
+        }
+        footer a:hover {
+            color: #0598B9;
+        }
+        .copyright {
+            font-size: 10px;
+        }
 
 /* Navigation */
 nav {
-    background-color: #1178DB;
-}
-nav a {
-    font-family: 'Open Sans', sans-serif;
-    color: #FCFCFC;
-}
-nav a:hover, nav a:focus {
-    background-color: #0B4B89;
-}
-.is-dropdown-submenu {
-    background-color: #1178DB;
-}
-.dropdown.menu > li.is-active > a {
-    background-color: #0B4B89;
-}
+        background-color: #0598B9;
+        margin: 0px !important;
+        padding: 0px !important;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+    }
+    nav .grid-container {
+        background-color: transparent;
+        padding: 0px !important;
+    }
+    nav a {
+        color: #F6F6F6;
+        background-color: #0598B9 !important;
+        padding: 30px 25px 30px 10px !important;
+    }
+    nav a::after {
+        border-color: #F6F6F6 transparent transparent !important;
+    }
+    nav a:hover, .dropdown.menu > li.is-active > a, nav a:focus {
+        color: #F6F6F6 !important;
+        background-color: #023945 !important;
+    }
+    .top-bar {
+        background: none !important;
+        padding: 0px !important;
+    }
+    .title-bar {
+        background: none !important;
+        padding: 20px 10px !important;
+    }
+    .title-bar .grid-x {
+        width: 100%;
+    }
+    ul.menu.submenu.is-dropdown-submenu {
+        border: 0px;
+    }
+    li.is-submenu-item.is-dropdown-submenu-item a {
+        background-color: #04728B !important;
+        padding: 10px 25px !important;
+        font-size: 14px !important;
+        font-weight: 300 !important;
+    }
+    li.is-submenu-item.is-dropdown-submenu-item a:hover, li.is-submenu-item.is-dropdown-submenu-item a:focus {
+        background-color: #023945 !important;
+    }
+    li.is-submenu-item.is-accordion-submenu-item a {
+        background-color: #04728B !important;
+        padding: 10px 25px !important;
+        font-size: 14px !important;
+        font-weight: 300 !important;
+    }
+    li.is-submenu-item.is-accordion-submenu-item a:hover, li.is-submenu-item.is-accordion-submenu-item a:focus {
+        background-color: #023945 !important;
+    }
+    .navLast {
+        padding: 30px 10px !important;
+    }
 
 /* Object Classes */
 .blueGround {
@@ -105,7 +155,7 @@ nav a:hover, nav a:focus {
     text-align: center;
 }
 .alignRight {
-    text-align: right;
+    text-align: right !important;
 }
 .lowParent {
     display: flex;
@@ -181,12 +231,22 @@ nav a:hover, nav a:focus {
 .noMar {
     margin: 0px;
 }
+.noDec {
+    text-decoration: none;
+    list-style: none;
+        }
 .hideSmall {
     display: block;
 }
 .hideLarge {
     display: none;
 }
+    .noHover:hover, .noHover:focus {
+        background-color: transparent !important;
+    }
+    .noBack {
+        background-color: transparent !important;
+    }
 
 /* Pagination Styling */
 ul.pagination li {
@@ -215,3 +275,8 @@ ul.pagination li.current:hover, ul.pagination li.current: focus {
         border: 0px;
     }
 }
+@media only screen and (max-width: 639px) {
+        nav a {
+            padding: 15px 25px !important;
+        }
+    }

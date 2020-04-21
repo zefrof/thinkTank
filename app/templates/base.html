@@ -191,15 +191,90 @@
             //content will be here
             {% endblock %}
         </main>
-        <footer>
-            <div class="grid-container">
-                <div class="grid-x grid-padding-x">
-                    <div class="cell large-3"></div>
-                    <div class="cell large-3"></div>
-                    <div class="cell large-3"></div>
-                    <div class="cell large-3"></div>
+            <footer>
+                <div class="grid-container">
+                    <div class="grid-x grid-padding-x">
+                        <div class="cell large-3">
+                            <h6 class="noMar"><a href="/format">Formats</a></h6>
+                            <ul class="noDec">
+                                <li>
+                                    <a href="/format/standard">Standard</a>
+                                </li>
+                                <li>
+                                    <a href="/format/pioneer">Pioneer</a>
+                                </li>
+                                <li>
+                                    <a href="/format/modern">Modern</a>
+                                </li>
+                                <li>
+                                    <a href="/format/legacy">Legacy</a>
+                                </li>
+                                <li>
+                                    <a href="/format/commander">Commander</a>
+                                </li>
+                                <li>
+                                    <a href="/format">Full List of Formats</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="cell large-3">
+                            <h6 class="noMar"><a href="/playstyle">Playstyles</a></h6>
+                            <ul class="noDec">
+                                <li>
+                                    <a href="/playstyle/aggro">Aggro</a>
+                                </li>
+                                <li>
+                                    <a href="/playstyle/control">Control</a>
+                                </li>
+                                <li>
+                                    <a href="/playstyle/combo">Combo</a>
+                                </li>
+                                <li>
+                                    <a href="/playstyle/midrange">Midrange</a>
+                                </li>
+                                <li>
+                                    <a href="/playstyle/tempo">Tempo</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="cell large-3">
+                            <h6 class="noMar"><a href="/color">Colors</a></h6>
+                            <ul class="noDec">
+                                <li>
+                                    <a href="/color/white">White</a>
+                                </li>
+                                <li>
+                                    <a href="/color/blue">Blue</a>
+                                </li>
+                                <li>
+                                    <a href="/color/black">Black</a>
+                                </li>
+                                <li>
+                                    <a href="/color/red">Red</a>
+                                </li>
+                                <li>
+                                    <a href="/color/green">Green</a>
+                                </li>
+                                <li>
+                                    <a href="/color/colorless">Colorless</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="cell large-3">
+                            <a href="https://www.thinktankmtg.com">
+                                <img src="/img/logo.svg" alt="Think Tank Logo">
+                            </a>
+                            <p class="copyright">
+                                <a href="https://www.thinktankmtg.com">thinktankmtg.com</a> is &copy; Think Tank 2020.
+                            </p>
+                            <p class="copyright">
+                                Magic: The Gathering and all related cards and materials are &copy; Wizards of the Coast.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </footer>
+    </body>
             <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/css/foundation.min.css" integrity="sha256-GSio8qamaXapM8Fq9JYdGNTvk/dgs+cMLgPeevOYEx0= sha384-wAweiGTn38CY2DSwAaEffed6iMeflc0FMiuptanbN4J+ib+342gKGpvYRWubPd/+ sha512-QHEb6jOC8SaGTmYmGU19u2FhIfeG+t/hSacIWPpDzOp5yygnthL3JwnilM7LM1dOAbJv62R+/FICfsrKUqv4Gg==" crossorigin="anonymous">
             <script src="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/js/foundation.min.js" integrity="sha256-mRYlCu5EG+ouD07WxLF8v4ZAZYCA6WrmdIXyn1Bv9Vk= sha384-KzKofw4qqetd3kvuQ5AdapWPqV1ZI+CnfyfEwZQgPk8poOLWaabfgJOfmW7uI+AV sha512-0gHfaMkY+Do568TgjJC2iMAV0dQlY4NqbeZ4pr9lVUTXQzKu8qceyd6wg/3Uql9qA2+3X5NHv3IMb05wb387rA==" crossorigin="anonymous"></script>
@@ -208,6 +283,4 @@
             <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/app.css') }}">
 
             <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-        </footer>
-    </body>
 </html>
