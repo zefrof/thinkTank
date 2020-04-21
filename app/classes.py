@@ -789,7 +789,7 @@ class Content:
 
 class Database:
     def __init__(self):
-        self.con = pymysql.connect('18.223.101.184', 'zefrof', 'hYbGFkPCgw@a', 'magic')
+        self.con = pymysql.connect('3.21.186.111', 'zefrof', 'hYbGFkPCgw@a', 'magic')
         self.cur = self.con.cursor()
 
         #Get auth token from TCGPlayer
