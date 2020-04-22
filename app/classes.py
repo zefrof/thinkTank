@@ -770,7 +770,7 @@ class Content:
 
                 dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.finish = 1 ", (event.cid, ))
                 f = dbm.cur.fetchone()
-                event.firstPlaceDeckId = f[0]
+                #event.firstPlaceDeckId = f[0]
 
                 events.append(event)
 
