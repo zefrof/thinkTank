@@ -1,0 +1,40 @@
+<header>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+    <link rel="stylesheet" type="text/css" href="css/foundation.css">
+    <link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+</header>
+
+<body>
+    <div class="grid-container">
+        <h3><!-- Deck Name --></h3>
+        <hr>
+        <div class="grid-x grid-padding-x">
+            <div class="cell large-4 borderRight" id="deckColFirst">
+                <!-- Cards Col 1 -->
+                <ul class="noDec">
+                    total = 0
+
+                    {% for x in deck.creatures %}
+                        <li><a>x</a></li>
+    
+                        {% total += 1
+                        if total == deck.totalCards / 2 %}
+
+                            <div class="cell large-4 borderRight" id="deckColSecond">
+                                <!-- Cards Col 2 -->
+                                <ul class="noDec">
+                        {% endif %}
+
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="cell large-4">
+                <!-- Card Img & Info-->
+                <img src="img/cardBack.jpg">
+                <div>
+                    <!-- Card Info -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

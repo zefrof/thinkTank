@@ -1,0 +1,76 @@
+total = 0
+
+{% for x in deck.creatures %}
+    <li>x</li>
+    
+    {% total += 1
+    if total == deck.totalCards / 2 %}
+
+        <div class="cell large-4 borderRight" id="deckColSecond">
+                <!-- Cards Col 2 -->
+                <ul class="noDec">
+    {% endif %}
+
+{% endfor %}
+
+{% for x in deck.planeswalkers %}
+    <li>x</li>
+
+    {% total += 1
+    if total == deck.totalCards / 2 %}
+
+        <div class="cell large-4 borderRight" id="deckColSecond">
+                <!-- Cards Col 2 -->
+                <ul class="noDec">
+    {% endif %}
+{% endfor %}
+
+{% for x in deck.spells %}
+    <li>x</li>
+
+    {% total += 1
+    if total == deck.totalCards / 2 %}
+
+        <div class="cell large-4 borderRight" id="deckColSecond">
+                <!-- Cards Col 2 -->
+                <ul class="noDec">
+    {% endif %}
+{% endfor %}
+
+{% for x in deck.enchantments %}
+    <li>x</li>
+
+    {% total += 1
+    if total == deck.totalCards / 2 %}
+
+        <div class="cell large-4 borderRight" id="deckColSecond">
+                <!-- Cards Col 2 -->
+                <ul class="noDec">
+    {% endif %}
+{% endfor %}
+
+{% for x in deck.artifacts %}
+    <li>x</li>
+
+    {% total += 1
+    if total == deck.totalCards / 2 %}
+
+        <div class="cell large-4 borderRight" id="deckColSecond">
+                <!-- Cards Col 2 -->
+                <ul class="noDec">
+    {% endif %}
+{% endfor %}
+
+{% for x in deck.lands %}
+    <li>x</li>
+
+    {% total += 1
+    if total == deck.totalCards / 2 %}
+
+        <div class="cell large-4 borderRight" id="deckColSecond">
+                <!-- Cards Col 2 -->
+                <ul class="noDec">
+    {% endif %}
+{% endfor %}
+
+
