@@ -510,6 +510,127 @@ class Deck:
                 #self.archetype is set to the ID in saveEvent (app.py), so fetching the ID from the name isn't necessary
                 dbm.cur.execute("INSERT INTO archetypeToDeck (archetypeId, deckId) VALUES (%s, %s)", (self.archetype, deckId))
 
+    def getDeck(self, dbm, cid, full = 0):
+        with dbm.con:
+            dbm.cur.execute("SELECT d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId WHERE d.id = %s AND d.active = 1 ", (cid, ))
+            fetch = dbm.cur.fetchone()
+
+            self.name = fetch[0]
+            self.pilot = fetch[1]
+            self.finish = fetch[2]
+            self.archetype = fetch[3]
+
+            if full == 1:
+                pass
+            else:
+                dbm.cur.execute("SELECT c.id, c.name, c.typeLine, c.manaCost, m.mediaUrl, m.altText, cd.copies, cd.sideboard FROM cards c LEFT JOIN mediaToCard mc ON mc.cardId = c.id LEFT JOIN media m ON m.id = mc.mediaId JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (cid, ))
+                fetch = dbm.cur.fetchall()
+
+                creature = False
+                spell = False
+                enchant = False
+                artifact = False
+                land = False
+                walker = False
+                sideboard = False
+
+                for c in fetch:
+                    card = Card()
+                    card.scryfallId = c[0]
+                    card.name = c[1]
+                    card.typeLine = c[2]
+                    card.manaCost = c[3]
+                    card.imageUrl = c[4]
+                    card.altText = c[5]
+                    card.copies = int(c[6])
+                    card.sideboard = int(c[7])
+
+                    while(True):
+
+                        if "Creature" in card.typeLine and creature == False:
+                            tmp = Card()
+                            tmp.name = "Creatures"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            creature = True
+                            break
+
+                        if "Planeswalker" in card.typeLine and walker == False:
+                            tmp = Card()
+                            tmp.name = "Planeswalker"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            walker = True
+                            break
+
+                        if "Instant" in card.typeLine and spell == False:
+                            tmp = Card()
+                            tmp.name = "Spells"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            spell = True
+                            break
+
+                        if "Sorcery" in card.typeLine and spell == False:
+                            tmp = Card()
+                            tmp.name = "Spells"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            spell = True
+                            break
+
+                        if "Land" in card.typeLine and land == False:
+                            tmp = Card()
+                            tmp.name = "Land"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            land = True
+                            break
+
+                        if "Enchantment" in card.typeLine and enchant == False:
+                            tmp = Card()
+                            tmp.name = "Enchantment"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            enchant = True
+                            break
+
+                        if "Artifact" in card.typeLine and artifact == False:
+                            tmp = Card()
+                            tmp.name = "Artifact"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            artifact = True
+                            break
+
+                        if card.sideboard == 1 and sideboard == False:
+                            tmp = Card()
+                            tmp.name = "Sideboard"
+                            tmp.copies = 0
+                            self.cards.append(tmp)
+                            creature = True
+                            spell = True
+                            enchant = True
+                            artifact = True
+                            land = True
+                            walker = True
+                            sideboard = True
+                            break
+
+                        break
+
+                    dbm.cur.execute("SELECT cf.name, m.mediaUrl, m.altText FROM cardFace cf JOIN cardFaceToCard cfc ON cfc.cardFaceId = cf.id JOIN cards c ON c.id = cfc.cardId JOIN cardFaceToMedia cfm ON cfm.cardFaceId = cf.id JOIN media m ON m.id = cfm.mediaId WHERE c.id = %s ", (card.scryfallId, ))
+                    fetch2 = dbm.cur.fetchall()
+
+                    for f in fetch2:
+                        face = Face()
+                        face.name = f[0]
+                        face.imageUrl = f[1]
+                        face.altText = f[2]
+                        card.faces.append(face)
+
+                    self.cards.append(card)
+
     def toString(self):
         s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)
 
@@ -649,7 +770,7 @@ class Content:
 
                 dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.finish = 1 ", (event.cid, ))
                 f = dbm.cur.fetchone()
-                #event.firstPlaceDeckId = f[0]
+                event.firstPlaceDeckId = f[0]
 
                 events.append(event)
 
@@ -695,7 +816,7 @@ class Content:
         return events
 
     def fetchDecksInEvent(self, dbm, deckId):
-        decks = {}
+        decks = []
         with dbm.con:
             dbm.cur.execute("SELECT e.id, e.name FROM events e JOIN deckToEvent de ON de.eventId = e.id WHERE de.deckId = %s", (deckId, ))
             if dbm.cur.rowcount == 1:
@@ -710,6 +831,46 @@ class Content:
                 print("!!! We have a deck (id: %s) not connected to an event" % (deckId))
 
         return decks
+
+    def searchEventNames(self, dbm, name):
+        events = []
+        name = "%" + name + "%"
+        with dbm.con:
+            dbm.cur.execute("SELECT id FROM `events` WHERE `name` LIKE %s", (name, ))
+            fetch = dbm.cur.fetchall()
+
+            for x in fetch:
+                event = Event()
+                event.getEvent(dbm, x)
+                events.append(event)
+
+        return events
+
+    def getFormats(self, dbm, full = 0):
+        formats = []
+        with dbm.con:
+            if full == 0:
+                pass
+            elif full == 1:
+                dbm.cur.execute("SELECT id, name FROM formats")
+                fetch = dbm.cur.fetchall()
+
+                for f in fetch:
+                    formats[f[0]] = f[1]
+            return formats
+
+    def getArk(self, dbm, full = 0):
+        ark = {}
+        with dbm.con:
+            if full == 0:
+                pass
+            elif full == 1:
+                dbm.cur.execute("SELECT id, name FROM archetypes ORDER BY name")
+                fetch = dbm.cur.fetchall()
+
+                for f in fetch:
+                    ark[f[0]] = f[1]
+            return ark
 
 class Database:
     def __init__(self):
