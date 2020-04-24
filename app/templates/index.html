@@ -8,8 +8,8 @@
             <div class="cell large-6 small-12">
                 <!-- List of Recent Events -->
                 {% for e in e1 %}
-                    <div class="cell large-6">
-                        <h4>
+                    <div class="cell large-6 rightBorder">
+                        <h4 class="homeList">
                             <!-- Name -->
                             <a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
                         </h4>
@@ -32,7 +32,7 @@
                 <!-- List of Recent Events Cont -->
                 {% for e in e2 %}
                     <div class="cell large-6">
-                        <h4>
+                        <h4 class="homeList">
                             <!-- Name -->
                             <a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
                         </h4>
