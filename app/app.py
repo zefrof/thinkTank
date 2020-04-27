@@ -10,8 +10,8 @@ def home():
 
     events = cont.fetchRecentEvents(dbm)
     
-    e1 = events[:9]
-    e2 = events[10:]
+    e1 = events[:4]
+    e2 = events[5:]
 
     return render_template('index.html', e1 = e1, e2 = e2)
 

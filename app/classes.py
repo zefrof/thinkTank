@@ -758,7 +758,7 @@ class Content:
     def fetchRecentEvents(self, dbm):
         events = []
         with dbm.con:
-            dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 AND date != 'Unknown' ORDER BY e.date DESC LIMIT 20 ")
+            dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 AND date != 'Unknown' ORDER BY e.date DESC LIMIT 10 ")
             fetch = dbm.cur.fetchall()
 
             for x in fetch:
