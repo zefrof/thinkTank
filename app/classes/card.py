@@ -377,7 +377,7 @@ class Card:
 		try:
 			#cid = '125843'
 
-			url = "https://api.tcgplayer.com/v1.27.0/pricing/product/" + str(cid)
+			url = "https://api.tcgplayer.com/v1.37.0/pricing/product/" + str(cid)
 			r = requests.get(url, headers = {'Authorization' : "Bearer " + token['access_token'],})
 			priceData = json.loads(r.text)
 

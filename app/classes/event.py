@@ -1,6 +1,6 @@
 import time, json, requests, pymysql, string, random
-from deck import Deck
-from card import Card, Face
+from classes.deck import Deck
+from classes.card import Card, Face
 
 class Event:
 

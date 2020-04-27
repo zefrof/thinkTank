@@ -1,5 +1,5 @@
 import time, json, requests, pymysql, string, random
-from card import Card, Face
+from classes.card import Card, Face
 
 class Deck:
 

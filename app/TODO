@@ -1,6 +1,9 @@
+USER CLASS
 - Manage users by id or a login name instead of username to allow multiple of the same username
 - Setup password resets with email
-- Return a random print of a card for deck connections? -> ORDER BY rand()
+
+DECK CLASS
+- Return most recent PAPER print for card to deck connections
 
 CARD CLASS
 - Optimize commitColors()
@@ -8,3 +11,6 @@ CARD CLASS
 
 FACE CLASS
 - Optimize commitFaceColors()
+
+OTHER
+- Make a requirements.txt file

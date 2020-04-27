@@ -1,8 +1,8 @@
 import time, json, requests, pymysql, string, random
 from passlib.hash import bcrypt
-from event import Event
-from deck import Deck
-from card import Card, Face
+from classes.event import Event
+from classes.deck import Deck
+from classes.card import Card, Face
 
 class Content:
 	
@@ -130,7 +130,8 @@ class Content:
 
 class Database:
 	def __init__(self):
-		self.con = pymysql.connect('3.21.186.111', 'zefrof', 'hYbGFkPCgw@a', 'magic')
+		#3.23.99.56
+		self.con = pymysql.connect('database-1.cdoltwpzgxgp.us-east-2.rds.amazonaws.com', 'urza', 'hYbGFkPCgw@a', 'magic')
 		self.cur = self.con.cursor()
 
 		#Get auth token from TCGPlayer
