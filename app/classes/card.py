@@ -251,7 +251,7 @@ class Card:
 
 	def commitCard(self, dbm):
 		with dbm.con:
-			dbm.cur.execute("SELECT c.id, c.dateModified FROM cards c WHERE c.id = %s", (self.scryfallId, ))
+			dbm.cur.execute("SELECT c.id, c.timestamp FROM cards c WHERE c.id = %s", (self.scryfallId, ))
 
 			#Card already exists
 			if dbm.cur.rowcount == 1:
@@ -261,7 +261,7 @@ class Card:
 				if fetch[1] < (int(time.time()) - 2629800):
 					print("Updating %s from %s" % (self.name, self.setCode))
 
-					dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s, dateModified = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time()), self.scryfallId))
+					dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, self.scryfallId))
 
 					self.commitLegalities(dbm)
 					self.commitImage(dbm)
@@ -270,7 +270,7 @@ class Card:
 
 			#Card doesn't exist
 			else:
-				dbm.cur.execute("INSERT INTO cards (id, name, releaseDate, layout, manaCost, cmc, typeLine, oracleText, flavorText, power, toughness, loyalty, reserved, foil, nonfoil, oversized, promo, reprint, variation, collectorNumber, rarity, watermark, artist, textless, dateAdded) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.scryfallId, self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, int(time.time())))
+				dbm.cur.execute("INSERT INTO cards (id, name, releaseDate, layout, manaCost, cmc, typeLine, oracleText, flavorText, power, toughness, loyalty, reserved, foil, nonfoil, oversized, promo, reprint, variation, collectorNumber, rarity, watermark, artist, textless) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.scryfallId, self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless))
 
 				self.commitLegalities(dbm)
 				self.commitPrice(dbm)
@@ -288,14 +288,14 @@ class Card:
 
 		if self.imageUrl != "":
 
-			dbm.cur.execute("SELECT m.id, m.dateAdded FROM media m JOIN mediaToCard mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
+			dbm.cur.execute("SELECT m.id, m.timestamp FROM media m JOIN mediaToCard mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
 
 			if dbm.cur.rowcount == 1:
 				fetch = dbm.cur.fetchone()
 				if fetch[1] < (int(time.time()) - 7889400):
 					dbm.cur.execute("UPDATE media SET mediaUrl = %s WHERE id = %s", (self.imageUrl, fetch[0]))
 			else:
-				dbm.cur.execute("INSERT INTO media (mediaUrl, altText, dateAdded) VALUES (%s, %s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet, int(time.time())))
+				dbm.cur.execute("INSERT INTO media (mediaUrl, altText) VALUES (%s, %s)", (self.imageUrl, "Image of " + self.name + " from " + self.mtgSet))
 				mediaId = dbm.cur.lastrowid
 				dbm.cur.execute("INSERT INTO mediaToCard (mediaId, cardId) VALUES (%s, %s)", (mediaId, self.scryfallId))
 
@@ -396,7 +396,7 @@ class Card:
 			print("!!! No price data for: %s from %s" % (self.name, self.setCode))
 
 	def commitPrice(self, dbm):
-		dbm.cur.execute("INSERT INTO prices (price, foilPrice, currency, dateAdded) VALUES (%s, %s, 'dollars', %s)", (self.curPrice, self.curFoilPrice, int(time.time())))
+		dbm.cur.execute("INSERT INTO prices (price, foilPrice, currency) VALUES (%s, %s, 'dollars')", (self.curPrice, self.curFoilPrice))
 		curPrice = dbm.cur.lastrowid
 		dbm.cur.execute("INSERT INTO cardToPrice (cardId, priceId) VALUES (%s, %s)", (self.scryfallId, curPrice))
 
