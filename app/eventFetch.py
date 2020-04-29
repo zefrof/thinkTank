@@ -1,164 +1,173 @@
 import requests, re
 from bs4 import BeautifulSoup
-from classes import Database, Event, Deck, Card
+from classes.general import Database
+from classes.event import Event
+from classes.deck import Deck
+from classes.card import Card, Face
 
 def main():
 
-    errCount = 0
-    url = "https://www.tcdecks.net/deck.php?id="
+	errCount = 0
+	url = "https://www.tcdecks.net/deck.php?id="
 
-    dbm = Database()
+	dbm = Database()
 
-    index = 0
-    end = 0
+	index = 0
+	end = 0
 
-    with dbm.con:
-        dbm.cur.execute("SELECT `index` FROM scrapeInfo WHERE id = 1")
-        tmp = dbm.cur.fetchone()
-        print(tmp[0])
-        index = tmp[0] - 3
-        if index <= 0:
-            index = 1
+	with dbm.con:
+		dbm.cur.execute("SELECT `index` FROM scrapeInfo WHERE id = 1")
+		tmp = dbm.cur.fetchone()
+		print(tmp[0])
+		index = tmp[0] - 3
+		if index <= 0:
+			index = 1
 
-        end = index + 253
+		end = index + 13
 
 
-    while errCount < 5:
-        page = requests.get(url + str(index))
+	while errCount < 5:
+		page = requests.get(url + str(index))
 
-        print(index)
+		print(index)
 
-        #Probably not needed
-        if(page.status_code == 404):
-            print("404 Error at: %d" % (index))
-            errCount += 1
-            index += 1
-            continue
+		#Probably not needed
+		if(page.status_code == 404):
+			print("404 Error at: %d" % (index))
+			errCount += 1
+			index += 1
+			continue
 
-        if index == end:
-            print(index)
-            break
+		if index == end:
+			print(index)
+			break
 
-        event = Event()
+		event = Event()
 
-        text = BeautifulSoup(page.content, features="html.parser")
-        split = text.find('h5').text.split('|')
+		text = BeautifulSoup(page.content, features="html.parser")
+		split = text.find('h5').text.split('|')
 
-        event.format = split[0].replace("Format:", "")
-        event.format = re.sub('[\(\[].*?[\)\]]', ' ', event.format)
-        event.format = event.format.replace("Archive", "")
-        event.format = event.format.strip()
+		event.format = split[0].replace("Format:", "")
+		event.format = re.sub(r'[\(\[].*?[\)\]]', ' ', event.format)
+		event.format = event.format.replace("Archive", "")
+		event.format = event.format.strip()
 
-        if event.format == "Vintage Old School":
-            event.format = "Old School"
+		if event.format == "Vintage Old School":
+			event.format = "Old School"
 
-        event.numPlayers = split[1].replace("Number of Players:", "")
-        event.numPlayers = event.numPlayers.strip()
+		event.numPlayers = split[1].replace("Number of Players:", "")
+		event.numPlayers = event.numPlayers.strip()
 
-        if event.numPlayers == "Unknown":
-            event.numPlayers = 0
+		if event.numPlayers == "Unknown":
+			event.numPlayers = 0
 
-        event.date = split[2].replace("Date:", "")
-        event.date = event.date.strip()
+		event.date = split[2].replace("Date:", "")
+		event.date = event.date.strip()
+		
+		try:
+			tmp = event.date.split("/")
+			event.date = tmp[2] + "/" + tmp[1] + "/" + tmp[0]
+		except:
+			event.date = "0000/00/00"
 
-        event.name = text.find('h3').text
+		event.name = text.find('h3').text
 
-        if event.name == "":
-            errCount += 1
-            index += 1
-            continue
+		if event.name == "":
+			errCount += 1
+			index += 1
+			continue
 
-        if event.eventExists(dbm) == True:
-            index += 1
-            continue
+		if event.eventExists(dbm) == True:
+			index += 1
+			continue
 
-        #print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
+		#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
 
-        #Iterate through decks at event
-        for row in text.findAll('td'):
-            try:
-                if "principal" in row['class']:
-                    deckPage = requests.get('https://www.tcdecks.net/' + row.a['href'])
-                    deckText = BeautifulSoup(deckPage.content, features="html.parser")
+		#Iterate through decks at event
+		for row in text.findAll('td'):
+			try:
+				if "principal" in row['class']:
+					deckPage = requests.get('https://www.tcdecks.net/' + row.a['href'])
+					deckText = BeautifulSoup(deckPage.content, features="html.parser")
 
-                    deck = Deck()
+					deck = Deck()
 
-                    deckInfo = deckText.find('th').text.strip()
-                    split = deckInfo.split('playing')
-                    deck.pilot = split[0].strip()
-                    deck.archetype = split[1].strip()
+					deckInfo = deckText.find('th').text.strip()
+					split = deckInfo.split('playing')
+					deck.pilot = split[0].strip()
+					deck.archetype = split[1].strip()
 
-                    place = deckText.findAll('th')[1].text.strip()
-                    deck.finish = place.split(' ')[1]
+					place = deckText.findAll('th')[1].text.strip()
+					deck.finish = place.split(' ')[1]
 
-                    ark = deckText.findAll('th')[2].text.strip()
-                    deck.name = ark.replace("Deck Name:", "")
-                    deck.name = deck.name.strip()
+					ark = deckText.findAll('th')[2].text.strip()
+					deck.name = ark.replace("Deck Name:", "")
+					deck.name = deck.name.strip()
 
-                    #print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
-                    event.decks.append(deck)
+					#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
+					event.decks.append(deck)
 
-                    #Number and name of each card
-                    s = deckText.findAll('tr')[2]
+					#Number and name of each card
+					s = deckText.findAll('tr')[2]
 
-                    names = []
-                    for tmp in s('a'):
-                        names.append(tmp.extract().text.strip())
+					names = []
+					for tmp in s('a'):
+						names.append(tmp.extract().text.strip())
 
-                    for tmp in s('h6'):
-                        tmp.extract()
+					for tmp in s('h6'):
+						tmp.extract()
 
-                    s = re.sub(r'\s', ' ', s.text)
-                    s = re.sub(' +', ' ', s)
-                    s = s.strip()
+					s = re.sub(r'\s', ' ', s.text)
+					s = re.sub(' +', ' ', s)
+					s = s.strip()
 
-                    numbahs = s.split(" ")
-                    numbahs = list(map(int, numbahs))
+					numbahs = s.split(" ")
+					numbahs = list(map(int, numbahs))
 
-                    if event.format == "Commander" or event.format == "Duel":
-                        total = 100
-                    else:
-                        total = 60
+					if event.format == "Commander" or event.format == "Duel":
+						total = 100
+					else:
+						total = 60
 
-                    #print(names)
-                    #print(numbahs)
+					#print(names)
+					#print(numbahs)
 
-                    if len(names) != len(numbahs):
-                        print("!!! Huston we have a problem at deck %s from event %s on %s" % (deck.name, event.name, event.date))
-                        print(names)
-                        print(numbahs)
-                        index += 1
-                        continue
+					if len(names) != len(numbahs):
+						print("!!! Huston we have a problem at deck %s from event %s on %s" % (deck.name, event.name, event.date))
+						print(names)
+						print(numbahs)
+						index += 1
+						continue
 
-                    mainboard = 0
-                    for x in range(len(names)):
-                        card = Card()
-                        cid = card.getCardId(names[x], dbm)
-                        card.getCard(dbm, cid, 0)
+					mainboard = 0
+					for x in range(len(names)):
+						card = Card()
+						cid = card.getCardId(names[x], dbm)
+						card.getCard(dbm, cid, 0)
 
-                        if mainboard < total:
-                            sideboard = 0
-                        else:
-                            sideboard = 1
+						if mainboard < total:
+							sideboard = 0
+						else:
+							sideboard = 1
 
-                        card.sideboard = sideboard
-                        card.copies = numbahs[x]
-                        deck.cards.append(card)
+						card.sideboard = sideboard
+						card.copies = numbahs[x]
+						deck.cards.append(card)
 
-                        mainboard += numbahs[x]
-            except:
-                pass
+						mainboard += numbahs[x]
+			except:
+				pass
 
-        event.commitEvent(dbm)
+		event.commitEvent(dbm)
 
-        index += 1
+		index += 1
 
-    if errCount == 5:
-        index -= 10
+	if errCount == 5:
+		index -= 10
 
-    with dbm.con:
-        dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
+	with dbm.con:
+		dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
 
 
 if __name__== "__main__":
-    main()
+	main()

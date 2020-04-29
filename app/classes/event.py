@@ -17,7 +17,7 @@ class Event:
     def commitEvent(self, dbm):
         with dbm.con:
 
-            dbm.cur.execute("INSERT INTO events (name, date, numPlayers, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, int(time.time())))
+            dbm.cur.execute("INSERT INTO events (name, date, numPlayers) VALUES (%s, %s, %s)", (self.name, self.date, self.numPlayers))
             eventId = dbm.cur.lastrowid
 
             self.eventToFormat(dbm, eventId)

@@ -16,7 +16,7 @@ class Deck:
     def commitDeck(self, dbm, eventId, new = 1):
         with dbm.con:
             if new == 1:
-                dbm.cur.execute("INSERT INTO decks (name, pilot, finish, dateAdded) VALUES (%s, %s, %s, %s)", (self.name, self.pilot, self.finish, int(time.time())))
+                dbm.cur.execute("INSERT INTO decks (name, pilot, finish) VALUES (%s, %s, %s)", (self.name, self.pilot, self.finish))
                 deckId = dbm.cur.lastrowid
 
                 self.deckToEvent(dbm, deckId, eventId)
