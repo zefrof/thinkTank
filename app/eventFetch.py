@@ -23,7 +23,7 @@ def main():
 		if index <= 0:
 			index = 1
 
-		end = index + 13
+		end = index + 1003
 
 
 	while errCount < 5:
@@ -39,7 +39,6 @@ def main():
 			continue
 
 		if index == end:
-			print(index)
 			break
 
 		event = Event()
@@ -98,7 +97,12 @@ def main():
 					deck.archetype = split[1].strip()
 
 					place = deckText.findAll('th')[1].text.strip()
-					deck.finish = place.split(' ')[1]
+					place = place.split(' ')[1]
+
+					try:
+						deck.finish = int(place)
+					except:
+						deck.finish = 0
 
 					ark = deckText.findAll('th')[2].text.strip()
 					deck.name = ark.replace("Deck Name:", "")
@@ -167,6 +171,9 @@ def main():
 
 	with dbm.con:
 		dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
+
+	print(index)
+	print("Done")
 
 
 if __name__== "__main__":
