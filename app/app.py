@@ -57,9 +57,9 @@ def cmsHome():
 	except:
 		pass
 
-	return render_template('cmsIndex.html')
+	return render_template('cms/cmsIndex.html')
 
-@app.route('/login', methods = ['POST', 'GET'])
+@app.route('/login/', methods = ['POST', 'GET'])
 def cmsLogin():
 	result = request.form
 
@@ -111,7 +111,7 @@ def createUser():
 	#for event in events:
 	#    print(event.name)
 
-	#return render_template('cmsEvents.html', events = events, page = page)
+	#return render_template('cms/cmsEvents.html', events = events, page = page)
 
 @app.route('/editevent/<cid>')
 def editEvent(cid):
@@ -131,7 +131,7 @@ def editEvent(cid):
 	event.cid = cid
 	event.getEvent(dbm, cid, 1)
 
-	return render_template('editEvent.html', event = event, formats = formats, ark = ark)
+	return render_template('cms/editEvent.html', event = event, formats = formats, ark = ark)
 
 @app.route('/saveevent/', methods = ['POST', 'GET'])
 def saveEvent():
@@ -196,4 +196,4 @@ def searchEvent():
 	cont = Content()
 	events = cont.searchEventNames(dbm, result['name'])
 
-	return render_template('cmsEvents.html', events = events, page = 1)
+	return render_template('cms/cmsEvents.html', events = events, page = 1)
