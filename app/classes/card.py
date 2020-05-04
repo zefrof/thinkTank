@@ -251,7 +251,7 @@ class Card:
 
 	def commitCard(self, dbm):
 		with dbm.con:
-			dbm.cur.execute("SELECT c.id, c.timestamp FROM cards c WHERE c.id = %s", (self.scryfallId, ))
+			dbm.cur.execute("SELECT c.id, UNIX_TIMESTAMP(c.timestamp) FROM cards c WHERE c.id = %s", (self.scryfallId, ))
 
 			#Card already exists
 			if dbm.cur.rowcount == 1:
@@ -288,7 +288,7 @@ class Card:
 
 		if self.imageUrl != "":
 
-			dbm.cur.execute("SELECT m.id, m.timestamp FROM media m JOIN mediaToCard mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
+			dbm.cur.execute("SELECT m.id, UNIX_TIMESTAMP(m.timestamp) FROM media m JOIN mediaToCard mc ON mc.mediaId = m.id WHERE mc.cardId = %s", (self.scryfallId, ))
 
 			if dbm.cur.rowcount == 1:
 				fetch = dbm.cur.fetchone()

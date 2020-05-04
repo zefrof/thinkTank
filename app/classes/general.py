@@ -7,14 +7,22 @@ from classes.card import Card, Face
 class Content:
 	
 	def __init__(self):
-		self.offset = 0
-		self.pOffset = 0
+		pass
 
-	def fetchRecentEvents(self, dbm):
+	def fetchRecentEvents(self, dbm, fid, page):
 		events = []
+		if page < 0:
+			page = 0
+
+		offset = page * 10
 		with dbm.con:
-			dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 AND date != 'Unknown' ORDER BY e.date DESC LIMIT 10 ")
-			fetch = dbm.cur.fetchall()
+			if fid == 0:
+				#Doing stupid pagination for now
+				dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 ORDER BY e.date DESC LIMIT %s, 10 ", (offset, ))
+				fetch = dbm.cur.fetchall()
+			else:
+				dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id WHERE e.active = 1 AND ef.formatId = %s ORDER BY e.date DESC LIMIT %s, 10 ", (fid, offset))
+				fetch = dbm.cur.fetchall()
 
 			for x in fetch:
 				event = Event()
@@ -23,66 +31,27 @@ class Content:
 				event.date = x[2]
 				event.numPlayers = x[3]
 
-				dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.finish = 1 ", (event.cid, ))
-				#TODO
-				#f = dbm.cur.fetchone()
-				#event.firstPlaceDeckId = f[0]
+				dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY d.finish LIMIT 1 ", (event.cid, ))
+				f = dbm.cur.fetchone()
+				event.firstPlaceDeckId = f[0]
 
 				events.append(event)
 
 			return events
-	
-	def fetchEvents(self, dbm, offset, fid = 0):
-		events = []
-		if offset < 0:
-			offset = 0
-		
-		with dbm.con:
-			if fid != 0:
-				dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id WHERE e.id > %s AND ef.formatId = %s AND e.active = 1 ORDER BY e.id LIMIT 20", (offset, fid))
-				fetch = dbm.cur.fetchall()
-
-				dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id WHERE e.id < %s AND ef.formatId = %s AND e.active = 1 ORDER BY e.id DESC LIMIT 20", (offset, fid))
-				backFetch = dbm.cur.fetchall()
-			else:
-				pass
-
-			for x in fetch:
-				event = Event()
-				event.cid = x[0]
-				event.name = x[1]
-				event.date = x[2]
-				event.numPlayers = x[3]
-
-				dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.finish = 1 ", (event.cid, ))
-				fetch = dbm.cur.fetchone()
-				event.firstPlaceDeckId = fetch[0]
-
-				events.append(event)
-
-			try:
-				self.pOffset = backFetch[-1][0]
-			except:
-				self.pOffset = 0
-
-			#Fixes an off by 1 error
-			if self.pOffset == 1:
-				self.pOffset = 0
-
-		return events
 
 	def fetchDecksInEvent(self, dbm, deckId):
 		decks = []
 		with dbm.con:
-			dbm.cur.execute("SELECT e.id, e.name FROM events e JOIN deckToEvent de ON de.eventId = e.id WHERE de.deckId = %s", (deckId, ))
+			dbm.cur.execute("SELECT e.id FROM events e JOIN deckToEvent de ON de.eventId = e.id WHERE de.deckId = %s", (deckId, ))
 			if dbm.cur.rowcount == 1:
-				fetch = dbm.cur.fetchone()
+				eid = dbm.cur.fetchone()
 
-				dbm.cur.execute("SELECT d.id, d.name FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (fetch[0], ))
+				dbm.cur.execute("SELECT d.id, d.name FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (eid[0], ))
 				fetch = dbm.cur.fetchall()
 
 				for f in fetch:
-					decks[f[0]] = f[1]
+					tDict = {'id' : f[0], 'name' : f[1]}
+					decks.append(tDict)
 			else:
 				print("!!! We have a deck (id: %s) not connected to an event" % (deckId))
 
@@ -130,7 +99,7 @@ class Content:
 
 class Database:
 	def __init__(self):
-		#3.23.99.56
+
 		self.con = pymysql.connect('database-1.cdoltwpzgxgp.us-east-2.rds.amazonaws.com', 'urza', 'hYbGFkPCgw@a', 'magic')
 		self.cur = self.con.cursor()
 
@@ -168,7 +137,7 @@ class User:
 		password = bcrypt.hash(password)
 
 		with dbm.con:
-			dbm.cur.execute("INSERT INTO admin.users (username, email, password) VALUES (%s, %s)", (username, email, password))
+			dbm.cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, password))
 
 		return True
 
@@ -176,16 +145,16 @@ class User:
 		dbm = Database()
 
 		with dbm.con:
-			dbm.cur.execute("SELECT id FROM admin.users WHERE username = %s", (username, ))
+			dbm.cur.execute("SELECT id FROM users WHERE username = %s", (username, ))
 
 			if dbm.cur.rowcount == 1:
-				dbm.cur.execute("SELECT password FROM admin.users WHERE username = %s", (username, ))
+				dbm.cur.execute("SELECT password FROM users WHERE username = %s", (username, ))
 				fetch = dbm.cur.fetchone()
 				check = bcrypt.verify(password, fetch[0])
 
 				if check == True:
 					sessionId = bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
-					dbm.cur.execute("UPDATE admin.users SET session = %s, lastLogin = %s WHERE username = %s", (sessionId, int(time.time()), username))
+					dbm.cur.execute("UPDATE users SET session = %s WHERE username = %s", (sessionId, username))
 					self.username = username
 					return sessionId
 				else:
@@ -197,13 +166,17 @@ class User:
 		dbm = Database()
 
 		with dbm.con:
-			dbm.cur.execute("SELECT lastLogin FROM admin.users WHERE session = %s", (sessionId, ))
+			dbm.cur.execute("SELECT UNIX_TIMESTAMP(lastLogin) FROM users WHERE session = %s", (sessionId, ))
 			fetch = dbm.cur.fetchone()
 			if dbm.cur.rowcount == 1:
 				if fetch[0] < (int(time.time()) - 1800):
+					print("here")
 					return False
 				else:
-					dbm.cur.execute("UPDATE admin.users SET lastLogin = %s WHERE username = %s", (int(time.time()), self.username))
+					#Updates the timestamp
+					dbm.cur.execute("UPDATE users WHERE username = %s", (self.username, ))
+					print("Good shit")
 					return True
 			else:
+				print("no sesh")
 				return False
