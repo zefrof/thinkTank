@@ -4,6 +4,8 @@ USER CLASS
 
 DECK CLASS
 - Return most recent PAPER print for card to deck connections
+- Do something with GetDeck()
+- Connect cards to the deck better
 
 CARD CLASS
 - Optimize commitColors()
