@@ -68,9 +68,9 @@ footer a:hover {
 }
 
 /* Navigation */
-nav {
+nav.mainNav {
     background-color: #0598B9;
-    margin: 0px !important;
+    margin: -24px 0px 0px 0px !important;
     padding: 0px !important;
     font-family: 'Poppins', sans-serif;
     font-weight: 500;
