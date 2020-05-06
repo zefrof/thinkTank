@@ -128,10 +128,12 @@ def main():
 					numbahs = s.split(" ")
 					numbahs = list(map(int, numbahs))
 
-					if event.format == "Commander" or event.format == "Duel":
-						total = 100
-					else:
-						total = 60
+					#print(deckText.findAll('th')[5].text.strip())
+
+					stg = deckText.findAll('th')[5].text.strip()
+					stg = stg.split(" ")[0].strip()
+
+					total = int(stg)
 
 					#print(names)
 					#print(numbahs)
