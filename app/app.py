@@ -180,4 +180,4 @@ def saveEvent():
 			#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
 		event.updateEvent(dbm)
 
-	return redirect(url_for('cmsEvents'))
+	return redirect(url_for('editEvent'))

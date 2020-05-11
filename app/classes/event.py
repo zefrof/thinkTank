@@ -29,7 +29,7 @@ class Event:
 
 	def updateEvent(self, dbm):
 		with dbm.con:
-			dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s WHERE id = %s", (self.name, self.date, self.numPlayers, self.cid))
+			dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s, active = 1 WHERE id = %s", (self.name, self.date, self.numPlayers, self.cid))
 
 			self.eventToFormat(dbm, self.cid, 0)
 
