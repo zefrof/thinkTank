@@ -31,7 +31,6 @@ def event(fid = 0, page = 0):
 
 	return render_template('event.html', events = events, page = page, fid = fid)
 
-@app.route('/deck/')
 @app.route('/deck/<cid>')
 def deck(cid = 0):
 
@@ -47,30 +46,31 @@ def deck(cid = 0):
 	return render_template('deck.html', deck = deck, decks = decks)
 
 #CMS
+@app.route('/cms')
 @app.route('/cms/')
-def cmsHome():
+def cmsIndex():
 	user = User()
 	try:
 		check = user.verifyUser(session['id'])
 		if check == True:
-			return redirect(url_for('cmsEvents'))
+			return redirect(url_for('cmsHome'))
 	except:
 		pass
 
-	return render_template('cms/cmsIndex.html')
+	return render_template('cms/index.html')
 
 @app.route('/login/', methods = ['POST', 'GET'])
 def cmsLogin():
 	result = request.form
 
 	user = User()
-	sessionId = user.loginUser(result['username'], result['password'])
+	sessionId = user.loginUser(result['email'], result['password'])
 
 	if sessionId != False:
 		session['id'] = sessionId
-		return redirect(url_for('cmsEvents'))
-	else:
 		return redirect(url_for('cmsHome'))
+	else:
+		return redirect(url_for('cmsIndex'))
 
 @app.route('/createUser/', methods = ['POST', 'GET'])
 def createUser():
@@ -84,54 +84,48 @@ def createUser():
 	elif check == False:
 		flash("Your username/password is too short (3/8) or passwords don't match")
 
-	return redirect(url_for('cmsHome'))
+	return redirect(url_for('cmsIndex'))
 
-#@app.route('/cmsevents/')
-#@app.route('/cmsevents/<page>')
-#def cmsEvents(page = 1):
-	#page = int(page)
-	#user = User()
-
-	#try:
-	#	check = user.verifyUser(session['id'])
-	#except:
-	#	print("no sess")
-	#	return redirect(url_for('cmsHome'))
-
-	#if check == False:
-	#	return redirect(url_for('cmsHome'))
-
-	#dbm = Database()
-	#cont = Content()
-
-	#if page <= 0:
-	#	page = 1
-	#events = cont.fetchEvents(dbm, page)
-
-	#for event in events:
-	#    print(event.name)
-
-	#return render_template('cms/cmsEvents.html', events = events, page = page)
-
-@app.route('/editevent/<cid>')
-def editEvent(cid):
-	dbm = Database()
+@app.route('/cmshome')
+@app.route('/cmshome/')
+def cmsHome():
 	user = User()
-	cont = Content()
-
 	try:
 		check = user.verifyUser(session['id'])
+		if check == True:
+			return render_template('cms/home.html')
 	except:
-		return redirect(url_for('cmsHome'))
+		pass
 
-	formats = cont.getFormats(dbm, 1)
-	ark = cont.getArk(dbm, 1)
+	return redirect(url_for('cmsIndex'))
 
-	event = Event()
-	event.cid = cid
-	event.getEvent(dbm, cid, 1)
+@app.route('/editevent')
+@app.route('/editevent/')
+@app.route('/editevent/<cid>')
+def editEvent(cid = 0):
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			cont = Content()
+			dbm = Database()
 
-	return render_template('cms/editEvent.html', event = event, formats = formats, ark = ark)
+			formats = cont.getFormats(dbm, 1)
+			ark = cont.getArk(dbm, 1)
+
+			event = Event()
+			if cid != 0:
+				event.cid = cid
+			else:
+				event.cid = cont.eventQueue(dbm)
+
+			event.getEvent(dbm)
+
+			return render_template('cms/editEvent.html', event = event, formats = formats, ark = ark)
+	except:
+		pass
+
+	return redirect(url_for('cmsIndex'))
 
 @app.route('/saveevent/', methods = ['POST', 'GET'])
 def saveEvent():
@@ -187,13 +181,3 @@ def saveEvent():
 		event.updateEvent(dbm)
 
 	return redirect(url_for('cmsEvents'))
-
-@app.route('/searchevent/', methods = ['POST', 'GET'])
-def searchEvent():
-	dbm = Database()
-	result = request.form
-
-	cont = Content()
-	events = cont.searchEventNames(dbm, result['name'])
-
-	return render_template('cms/cmsEvents.html', events = events, page = 1)

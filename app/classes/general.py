@@ -57,22 +57,8 @@ class Content:
 
 		return decks
 
-	def searchEventNames(self, dbm, name):
-		events = []
-		name = "%" + name + "%"
-		with dbm.con:
-			dbm.cur.execute("SELECT id FROM `events` WHERE `name` LIKE %s", (name, ))
-			fetch = dbm.cur.fetchall()
-
-			for x in fetch:
-				event = Event()
-				event.getEvent(dbm, x)
-				events.append(event)
-
-		return events
-
 	def getFormats(self, dbm, full = 0):
-		formats = []
+		formats = {}
 		with dbm.con:
 			if full == 0:
 				pass
@@ -96,6 +82,12 @@ class Content:
 				for f in fetch:
 					ark[f[0]] = f[1]
 			return ark
+
+	def eventQueue(self, dbm):
+		with dbm.con:
+			dbm.cur.execute("SELECT e.id FROM magic.events e WHERE active = 0 ORDER BY e.date DESC LIMIT 1")
+			fetch = dbm.cur.fetchone()
+			return fetch[0]
 
 class Database:
 	def __init__(self):
@@ -141,21 +133,20 @@ class User:
 
 		return True
 
-	def loginUser(self, username, password):
+	def loginUser(self, email, password):
 		dbm = Database()
 
 		with dbm.con:
-			dbm.cur.execute("SELECT id FROM users WHERE username = %s", (username, ))
+			dbm.cur.execute("SELECT id FROM users WHERE email = %s", (email, ))
 
 			if dbm.cur.rowcount == 1:
-				dbm.cur.execute("SELECT password FROM users WHERE username = %s", (username, ))
+				dbm.cur.execute("SELECT password FROM users WHERE email = %s", (email, ))
 				fetch = dbm.cur.fetchone()
 				check = bcrypt.verify(password, fetch[0])
 
 				if check == True:
-					sessionId = bcrypt.hash(username + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
-					dbm.cur.execute("UPDATE users SET session = %s WHERE username = %s", (sessionId, username))
-					self.username = username
+					sessionId = bcrypt.hash(email + ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(40)))
+					dbm.cur.execute("UPDATE users SET session = %s WHERE email = %s", (sessionId, email))
 					return sessionId
 				else:
 					return False
@@ -166,17 +157,14 @@ class User:
 		dbm = Database()
 
 		with dbm.con:
-			dbm.cur.execute("SELECT UNIX_TIMESTAMP(lastLogin) FROM users WHERE session = %s", (sessionId, ))
+			dbm.cur.execute("SELECT UNIX_TIMESTAMP(lastLogin), id FROM users WHERE session = %s", (sessionId, ))
 			fetch = dbm.cur.fetchone()
 			if dbm.cur.rowcount == 1:
 				if fetch[0] < (int(time.time()) - 1800):
-					print("here")
 					return False
 				else:
 					#Updates the timestamp
-					dbm.cur.execute("UPDATE users WHERE username = %s", (self.username, ))
-					print("Good shit")
+					dbm.cur.execute("UPDATE users SET lastLogin = CURRENT_TIMESTAMP WHERE id =  %s", (fetch[1], ))
 					return True
 			else:
-				print("no sesh")
 				return False
