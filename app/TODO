@@ -15,4 +15,4 @@ FACE CLASS
 - Optimize commitFaceColors()
 
 OTHER
-- Make a requirements.txt file
+- Fix card image displaying on mobile
