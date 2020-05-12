@@ -62,7 +62,7 @@ class Deck:
 			dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId WHERE d.id = %s", (cid, ))
 			fetch = dbm.cur.fetchone()
 
-			self.cid = fetch[0]
+			self.cid = cid
 			self.name = fetch[1]
 			self.pilot = fetch[2]
 			self.finish = fetch[3]
