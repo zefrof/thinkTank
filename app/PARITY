@@ -1,0 +1,24 @@
+Clean Up
+	- Fix images on mobile
+	- Fix footer
+	- Pagination
+	- Listing cards
+	- Logo
+	- Favicon
+
+Parity
+	- Card prices (MTGO and paper)
+	- Deck prices
+	- Buying cards (tcgplayer, cardkingdom, cardhoarder)
+	- Search both tournaments and decks
+	- Recent similar decks
+	- Contact form
+	- Metagame Breakdown/Other Stats
+    	- Timeframe, mtgo, arena, etc
+    	- Most played cards
+    	- Deck Stats (I.e. % color, % card type, etc)
+	- Export to MTGO, arena, and txt
+	- Banned cards on deck page. Links to full banlist
+	- Sample Hand
+	- Event submission
+	- Budget lists
