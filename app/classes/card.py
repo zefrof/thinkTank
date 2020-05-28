@@ -245,7 +245,12 @@ class Card:
 				fill = '%//%'
 
 				dbm.cur.execute("SELECT id FROM `cards` WHERE `name` LIKE %s AND `name` LIKE %s ", (tempName, fill))
-				fetch = dbm.cur.fetchone()
+
+				if dbm.cur.rowcount > 0:
+					fetch = dbm.cur.fetchone()
+				else:
+					dbm.cur.execute("SELECT id FROM cards WHERE REPLACE(name , '-', ' ') LIKE %s ", (name, ))
+					fetch = dbm.cur.fetchone()
 
 			return fetch[0]
 

@@ -71,13 +71,16 @@ class Deck:
 			dbm.cur.execute("SELECT c.id, c.name, c.typeLine, c.manaCost, m.mediaUrl, m.altText, cd.copies, cd.sideboard FROM cards c LEFT JOIN mediaToCard mc ON mc.cardId = c.id LEFT JOIN media m ON m.id = mc.mediaId JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (cid, ))
 			fetch = dbm.cur.fetchall()
 
-			creature = False
-			spell = False
-			enchant = False
-			artifact = False
-			land = False
-			walker = False
-			sideboard = False
+			creature = []
+			instant = []
+			sorcery = []
+			enchant = []
+			artifact = []
+			land = []
+			walker = []
+			commander = []
+			companion = []
+			sideboard = []
 
 			for c in fetch:
 				card = Card()
@@ -89,85 +92,7 @@ class Deck:
 				card.altText = c[5]
 				card.copies = int(c[6])
 				card.sideboard = int(c[7])
-
-				typ = card.typeLine.split('—')[0]
-				typ = typ.split()[-1]
-				print(typ)
 				
-				while(True):
-
-					if "Creature" in card.typeLine and creature == False:
-						tmp = Card()
-						tmp.name = "Creatures"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						creature = True
-						break
-
-					if "Planeswalker" in card.typeLine and walker == False:
-						tmp = Card()
-						tmp.name = "Planeswalker"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						walker = True
-						break
-
-					if "Instant" in card.typeLine and spell == False:
-						tmp = Card()
-						tmp.name = "Spells"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						spell = True
-						break
-
-					if "Sorcery" in card.typeLine and spell == False:
-						tmp = Card()
-						tmp.name = "Spells"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						spell = True
-						break
-
-					if "Land" in card.typeLine and land == False:
-						tmp = Card()
-						tmp.name = "Land"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						land = True
-						break
-
-					if "Enchantment" in card.typeLine and enchant == False:
-						tmp = Card()
-						tmp.name = "Enchantment"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						enchant = True
-						break
-
-					if "Artifact" in card.typeLine and artifact == False:
-						tmp = Card()
-						tmp.name = "Artifact"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						artifact = True
-						break
-
-					if card.sideboard == 1 and sideboard == False:
-						tmp = Card()
-						tmp.name = "Sideboard"
-						tmp.copies = 0
-						self.cards.append(tmp)
-						creature = True
-						spell = True
-						enchant = True
-						artifact = True
-						land = True
-						walker = True
-						sideboard = True
-						break
-
-					break
-
 				dbm.cur.execute("SELECT cf.name, m.mediaUrl, m.altText FROM cardFace cf JOIN cardFaceToCard cfc ON cfc.cardFaceId = cf.id JOIN cards c ON c.id = cfc.cardId JOIN cardFaceToMedia cfm ON cfm.cardFaceId = cf.id JOIN media m ON m.id = cfm.mediaId WHERE c.id = %s ", (card.scryfallId, ))
 				fetch2 = dbm.cur.fetchall()
 
@@ -178,7 +103,41 @@ class Deck:
 					face.altText = f[2]
 					card.faces.append(face)
 
-				self.cards.append(card)
+				typ = card.typeLine.split('—')[0]
+				typ = typ.split()[-1].strip()
+				print(typ)
+
+				if sideboard == 2:
+					commander.append(card)
+				elif sideboard == 3:
+					companion.append(card)
+				elif typ == "Creature":
+					creature.append(card)
+				elif typ == "Instant":
+					instant.append(card)
+				elif typ == "Sorcery":
+					sorcery.append(card)
+				elif typ == "Enchantment":
+					enchant.append(card)
+				elif typ == "Artifact":
+					artifact.append(card)
+				elif typ == "Planeswalker":
+					walker.append(card)
+				elif typ == "Land":
+					land.append(card)
+				elif card.sideboard == 1:
+					sideboard.append(card)
+				
+			self.cards.extend(commander)
+			self.cards.extend(creature)
+			self.cards.extend(instant)
+			self.cards.extend(sorcery)
+			self.cards.extend(enchant)
+			self.cards.extend(artifact)
+			self.cards.extend(walker)
+			self.cards.extend(land)
+			self.cards.extend(companion)
+			self.cards.extend(sideboard)
 
 	def toString(self):
 		s = '{"name":"%s", "pilot":"%s", "finish":"%s", "archetype":"%s"}' % (self.name, self.pilot, self.finish, self.archetype)

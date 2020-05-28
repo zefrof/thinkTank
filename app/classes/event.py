@@ -18,12 +18,12 @@ class Event:
 		with dbm.con:
 
 			dbm.cur.execute("INSERT INTO events (name, date, numPlayers) VALUES (%s, %s, %s)", (self.name, self.date, self.numPlayers))
-			eventId = dbm.cur.lastrowid
+			self.cid = dbm.cur.lastrowid
 
-			self.eventToFormat(dbm, eventId)
+			self.eventToFormat(dbm, self.cid)
 
 			for deck in self.decks:
-				deck.commitDeck(dbm, eventId)
+				deck.commitDeck(dbm, self.cid)
 
 			print("### Inserted %s on %s in format %s" % (self.name, self.date, self.format))
 

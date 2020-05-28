@@ -2,3 +2,4 @@ app/scryfall-default-cards.json
 .vscode/settings.json
 *.pyc
 .DS_Store
+app/.vscode/settings.json

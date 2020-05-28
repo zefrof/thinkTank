@@ -3,6 +3,7 @@ from classes.general import Database, Content, User
 from classes.event import Event
 from classes.deck import Deck
 from classes.card import Card
+from eventFetchv2 import *
 app = Flask(__name__)
 app.secret_key = b"\xf0/\xa1\xdb'\xfe!\xf68#\xb1\x19\x18\x01\xfb\x0f"
 
@@ -44,6 +45,30 @@ def deck(cid = 0):
 	print(decks)
 
 	return render_template('deck.html', deck = deck, decks = decks)
+
+@app.route('/submit')
+@app.route('/submit/')
+def submit():
+	return render_template('submit.html')
+
+
+@app.route('/edit/', methods = ['POST', 'GET'])
+def edit():
+	#https://magic.wizards.com/en/articles/archive/mtgo-standings/legacy-super-qualifier-2020-05-15#decklists
+	#https://magic.wizards.com/en/articles/archive/mtgo-standings/standard-league-2020-05-14
+	cont = Content()
+	dbm = Database()
+	result = request.form
+
+	event = Event()
+	event.cid = urlFilter(result['link'])
+	event.getEvent(dbm)
+
+	formats = cont.getFormats(dbm, 1)
+	ark = cont.getArk(dbm, 1)
+
+	return render_template('cms/editEvent.html', event = event, formats = formats, ark = ark)
+
 
 #CMS
 @app.route('/cms')
