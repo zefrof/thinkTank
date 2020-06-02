@@ -27,9 +27,9 @@ class Event:
 
 			print("### Inserted %s on %s in format %s" % (self.name, self.date, self.format))
 
-	def updateEvent(self, dbm):
+	def updateEvent(self, dbm, active = 0):
 		with dbm.con:
-			dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s, active = 1 WHERE id = %s", (self.name, self.date, self.numPlayers, self.cid))
+			dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s, active = %s WHERE id = %s", (self.name, self.date, self.numPlayers, active, self.cid))
 
 			self.eventToFormat(dbm, self.cid, 0)
 
@@ -109,3 +109,14 @@ class Event:
 						deck.sideboard.append(card)
 
 				self.decks.append(deck)
+
+	def deleteEvent(self, dbm):
+		with dbm.con:
+			dbm.cur.execute("SELECT d.id FROM magic.decks d JOIN magic.deckToEvent dte ON dte.deckId = d.id WHERE dte.eventId = %s", (self.cid, ))
+			fetch = dbm.cur.fetchall()
+
+			for d in fetch:
+				dbm.cur.execute("DELETE FROM magic.decks WHERE id = %s", (d[0], ))
+
+			dbm.cur.execute("DELETE FROM magic.events WHERE id = %s", (self.cid, ))
+			

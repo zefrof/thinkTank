@@ -1,8 +1,8 @@
-{% extends "/cms/cmsLayout.html" %}
-{% block body %}
-	<p>Edit Event</p>
+{% extends "base.html" %}
+{% block content %}
+	<h2>Edit Event</h2>
 	<div>
-		<form id="eventForm" action="/saveevent/1" method="post">
+		<form id="eventForm" action="/saveevent" method="post">
 			<div class="grid-x grid-padding-x">
 				<div class="cell small-12 medium-3 large-3">
 					<h6>Event</h6>
@@ -41,7 +41,7 @@
 					</div>
 					<div class="cell small-12 medium-3 large-3">
 						<h6>Archetype</h6>
-						<select name="archetype" required>
+						<select name="archetype">
 							{% for a in ark %}
 								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected="selected" {% endif %}>{{ark[a]}}</option>
 							{% endfor %}
@@ -61,8 +61,8 @@
 				<input type="hidden" name="did" value="{{ deck.cid }}">
 			{% endfor %}
 			<input type="hidden" name="cid" value="{{ event.cid }}">
-			<input type="submit" class="success button" value="Activate and Save">
-			<input type="button" class="alert button" value="Delete" onclick="window.location.href = '/delevent'">
+			<input type="submit" class="success button" value="Submit For Review">
+			<input type="button" class="alert button" value="Delete">
 		</form>
 	</div>
 {% endblock %}

@@ -1,0 +1,15 @@
+Event Submission page
+
+- Users can search a card name to get the id
++ add required to all(?) fields
++ autofill unknown for pilot if not entered
+- Make submission rules available on event editor page
++ Don't active event if user entry
++ Show site header for user entry
++ check for duplicate events
++ validate url entered is a url
++ autofill card id's if they aren't entered
+
+For J:
+- Create a event exits page
+- Style the submit page

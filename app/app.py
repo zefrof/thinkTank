@@ -62,12 +62,16 @@ def edit():
 
 	event = Event()
 	event.cid = urlFilter(result['link'])
+	
+	if event.cid == 0:
+		return render_template('/eventExists.html')
+
 	event.getEvent(dbm)
 
 	formats = cont.getFormats(dbm, 1)
 	ark = cont.getArk(dbm, 1)
 
-	return render_template('cms/editEvent.html', event = event, formats = formats, ark = ark)
+	return render_template('edit.html', event = event, formats = formats, ark = ark)
 
 
 #CMS
@@ -153,7 +157,8 @@ def editEvent(cid = 0):
 	return redirect(url_for('cmsIndex'))
 
 @app.route('/saveevent/', methods = ['POST', 'GET'])
-def saveEvent():
+@app.route('/saveevent/<int:active>', methods = ['POST', 'GET'])
+def saveEvent(active = 0):
 	if request.method == 'POST':
 		result = request.form
 		dbm = Database()
@@ -183,6 +188,9 @@ def saveEvent():
 			deck.finish = finish[i]
 			deck.archetype = ark[i]
 
+			if deck.pilot == '':
+				deck.pilot = 'Unknown'
+
 			main = mainboard[i].splitlines()
 			side = sideboard[i].splitlines()
 
@@ -190,19 +198,56 @@ def saveEvent():
 				spl = c.split(' | ')
 				card = Card()
 				card.copies = spl[0]
-				card.scryfallId = spl[2]
+				
+				try:
+					card.scryfallId = spl[2]
+				except:
+					card.scryfallId = card.getCardId(spl[1], dbm)
+
 				deck.cards.append(card)
 
 			for c in side:
 				spl = c.split(' | ')
 				card = Card()
 				card.copies = spl[0]
-				card.scryfallId = spl[2]
+
+				try:
+					card.scryfallId = spl[2]
+				except:
+					card.scryfallId = card.getCardId(spl[1], dbm)
+
 				card.sideboard = 1
 				deck.cards.append(card)
 
 			event.decks.append(deck)
 			#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
-		event.updateEvent(dbm)
+		
+		if active != 1:
+			active = 0
+		
+		event.updateEvent(dbm, active)
 
-	return redirect(url_for('editEvent'))
+	if active == 1:
+		return redirect(url_for('editEvent'))
+	else:
+		return redirect(url_for('submit'))
+
+@app.route('/delevent/', methods = ['POST', 'GET'])
+def delEvent():
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			if request.method == 'POST':
+				result = request.form
+				dbm = Database()
+
+				event = Event()
+				event.cid = result['cid']
+				event.deleteEvent(dbm)
+
+				return redirect(url_for('editEvent'))
+		else:
+			return redirect(url_for('home'))
+	except:
+		return redirect(url_for('home'))

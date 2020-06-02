@@ -35,6 +35,10 @@ def mtgoScrape(url):
 	d = datetime.datetime.strptime(date, '%b %d, %Y')
 	event.date = d.strftime('%Y-%m-%d')
 
+	#UN-COMMENT FOR PROD
+	#if event.eventExists(dbm) == True:
+	#	return 0
+
 	#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
 	
 	for div in text.find_all("div", class_="deck-group"):
@@ -53,7 +57,7 @@ def mtgoScrape(url):
 		#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
 
 		#Mainboard
-		deckText = text.find("div", class_="sorted-by-overview-container")
+		deckText = div.find("div", class_="sorted-by-overview-container")
 		
 		numbahs = deckText.find_all("span", class_="card-count")
 		mainboard = deckText.find_all("span", class_="card-name")
@@ -62,6 +66,8 @@ def mtgoScrape(url):
 			print("!!! There's a problem with card counts in the mainboard")
 		
 		for n, m in zip(numbahs, mainboard):
+			#print("{} {}".format(n.text, m.text))
+
 			card = Card()
 			cid = card.getCardId(m.text, dbm)
 			card.getCard(dbm, cid, 0)
@@ -69,7 +75,7 @@ def mtgoScrape(url):
 			deck.cards.append(card)
 
 		#Sideboard
-		sideText = text.find("div", class_="sorted-by-sideboard-container")
+		sideText = div.find("div", class_="sorted-by-sideboard-container")
 
 		sideNums = sideText.find_all("span", class_="card-count")
 		sideboard = sideText.find_all("span", class_="card-name")
@@ -91,3 +97,12 @@ def mtgoScrape(url):
 
 	return event.cid
 	
+
+""" def main():
+	url = "https://magic.wizards.com/en/articles/archive/mtgo-standings/legacy-super-qualifier-2020-05-15#decklists"
+	
+	urlFilter(url)
+
+
+if __name__== "__main__":
+	main() """
