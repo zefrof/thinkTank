@@ -4,15 +4,15 @@
 		<div class="grid-x grid-padding-x">
 			<select id="Decks" onchange="changeDeck(this.value);">
 				{% for d in decks %}
-					<!-- <option value="{{d}}" {% if decks[d] == deck.name %} selected="selected" {% endif %}>{{decks[d]}}</option> -->
-					<option value="{{d['id']}}" {% if d['id'] == deck.cid %} selected="selected" {% endif %} >{{d['name']}}</option>
+					{{ deck.cid }}
+					<option value="{{d}}" {% if d|int() == deck.cid|int() %} selected {% endif %}>{{decks[d]}}</option>
 				{% endfor %}
 			</select>
 			<div class="cell shrink">
 				<h1 class="placement">{{deck.finish}}</h1>
 			</div>
 			<div class="cell auto">
-				<h3>{{deck.name}} - {{deck.archtype}}</h3>
+				<h3>{{deck.name}} - {{deck.archetype}} - {{deck.price}}$</h3>
 				<h4>{{deck.pilot}}</h4>
 			</div>
 			<hr>
@@ -23,9 +23,9 @@
 				{% if deck.cards[x].copies == 0 %}
 					<h5 class="listType">{{deck.cards[x].name}}</h5>
 				{% elif deck.cards[x].faces | length > 0 %}
-					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].faces[0].imageUrl}}', '{{deck.cards[x].faces[0].altText}}');">{{deck.cards[x].faces[0].name}}</a> // <a onmouseover="showImage('{{deck.cards[x].faces[1].imageUrl}}', '{{deck.cards[x].faces[1].altText}}');">{{deck.cards[x].faces[1].name}}</a><br>
+					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].faces[0].imageUrl}}', '{{deck.cards[x].faces[0].altText}}', '{{deck.cards[x].curPrice}}', '{{deck.cards[x].curFoilPrice}}');">{{deck.cards[x].faces[0].name}}</a> // <a onmouseover="showImage('{{deck.cards[x].faces[1].imageUrl}}', '{{deck.cards[x].faces[1].altText}}', '{{deck.cards[x].curPrice}}', '{{deck.cards[x].curFoilPrice}}');">{{deck.cards[x].faces[1].name}}</a><br>
 				{% else %}
-					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].imageUrl}}', '{{deck.cards[x].altText}}');">{{deck.cards[x].name}}</a><br>
+					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].imageUrl}}', '{{deck.cards[x].altText}}', '{{deck.cards[x].curPrice}}', '{{deck.cards[x].curFoilPrice}}');">{{deck.cards[x].name}}</a><br>
 				{% endif %}
 			  {% endfor %}
 			</div>
@@ -34,14 +34,18 @@
 				{% if deck.cards[x].copies == 0 %}
 					<h5 class="listType">{{deck.cards[x].name}}</h5>
 				{% elif deck.cards[x].faces | length > 0 %}
-					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].faces[0].imageUrl}}', '{{deck.cards[x].faces[0].altText}}');">{{deck.cards[x].faces[0].name}}</a> // <a onmouseover="showImage('{{deck.cards[x].faces[1].imageUrl}}', '{{deck.cards[x].faces[1].altText}}');">{{deck.cards[x].faces[1].name}}</a><br>
+					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].faces[0].imageUrl}}', '{{deck.cards[x].faces[0].altText}}', '{{deck.cards[x].curPrice}}', '{{deck.cards[x].curFoilPrice}}');">{{deck.cards[x].faces[0].name}}</a> // <a onmouseover="showImage('{{deck.cards[x].faces[1].imageUrl}}', '{{deck.cards[x].faces[1].altText}}', '{{deck.cards[x].curPrice}}', '{{deck.cards[x].curFoilPrice}}');">{{deck.cards[x].faces[1].name}}</a><br>
 				{% else %}
-					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].imageUrl}}', '{{deck.cards[x].altText}}');">{{deck.cards[x].name}}</a><br>
+					{{deck.cards[x].copies}} <a onmouseover="showImage('{{deck.cards[x].imageUrl}}', '{{deck.cards[x].altText}}', '{{deck.cards[x].curPrice}}', '{{deck.cards[x].curFoilPrice}}');">{{deck.cards[x].name}}</a><br>
 				{% endif %}
 			  {% endfor %}
 			</div>
 			<div class="cell large-4 vertCenter hideSmall" id="cardImg">
 				<img id="imageSrc" src="/static/img/cardBack.jpg" alt="Magic card back">
+				<label for="price">Non-Foil Price: </label>
+					<a id="price"></a>
+				<label for="foilPrice">Foil Price: </label>	
+					<a id="foilPrice"></a>
 			</div>
 		</div>
 	</div>

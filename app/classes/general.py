@@ -40,21 +40,25 @@ class Content:
 			return events
 
 	def fetchDecksInEvent(self, dbm, deckId):
-		decks = []
+		decks = {}
 		with dbm.con:
 			dbm.cur.execute("SELECT e.id FROM events e JOIN deckToEvent de ON de.eventId = e.id WHERE de.deckId = %s", (deckId, ))
 			if dbm.cur.rowcount == 1:
 				eid = dbm.cur.fetchone()
 
-				dbm.cur.execute("SELECT d.id, d.name FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (eid[0], ))
+				dbm.cur.execute("SELECT d.id, d.name, d.pilot FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (eid[0], ))
 				fetch = dbm.cur.fetchall()
 
 				for f in fetch:
-					tDict = {'id' : f[0], 'name' : f[1]}
-					decks.append(tDict)
+					decks[f[0]] = f[1] + " - " + f[2]
+					
+					#tDict = {'id' : f[0], 'name' : f[1]}
+					#decks.append(tDict)
 			else:
 				print("!!! We have a deck (id: %s) not connected to an event" % (deckId))
 
+		
+		print(decks)
 		return decks
 
 	def getFormats(self, dbm, full = 0):

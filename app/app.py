@@ -3,7 +3,7 @@ from classes.general import Database, Content, User
 from classes.event import Event
 from classes.deck import Deck
 from classes.card import Card
-from eventFetchv2 import *
+from eventFetchv2 import urlFilter
 app = Flask(__name__)
 app.secret_key = b"\xf0/\xa1\xdb'\xfe!\xf68#\xb1\x19\x18\x01\xfb\x0f"
 
@@ -232,21 +232,19 @@ def saveEvent(active = 0):
 	else:
 		return redirect(url_for('submit'))
 
-@app.route('/delevent/', methods = ['POST', 'GET'])
-def delEvent():
+@app.route('/delevent/<int:eid>')
+def delEvent(eid = 0):
 	user = User()
 	try:
 		check = user.verifyUser(session['id'])
 		if check == True:
-			if request.method == 'POST':
-				result = request.form
-				dbm = Database()
+			dbm = Database()
 
-				event = Event()
-				event.cid = result['cid']
-				event.deleteEvent(dbm)
+			event = Event()
+			event.cid = eid
+			event.deleteEvent(dbm)
 
-				return redirect(url_for('editEvent'))
+			return redirect(url_for('editEvent'))
 		else:
 			return redirect(url_for('home'))
 	except:

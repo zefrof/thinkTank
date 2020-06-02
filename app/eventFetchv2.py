@@ -36,8 +36,8 @@ def mtgoScrape(url):
 	event.date = d.strftime('%Y-%m-%d')
 
 	#UN-COMMENT FOR PROD
-	#if event.eventExists(dbm) == True:
-	#	return 0
+	if event.eventExists(dbm) == True:
+		return 0
 
 	#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
 	

@@ -62,7 +62,7 @@
 			{% endfor %}
 			<input type="hidden" name="cid" value="{{ event.cid }}">
 			<input type="submit" class="success button" value="Activate and Save">
-			<input type="button" class="alert button" value="Delete" onclick="window.location.href = '/delevent'">
+			<input type="button" class="alert button" value="Delete" onclick="window.location.href = '/delevent/' + '{{ event.cid }}';">
 		</form>
 	</div>
 {% endblock %}

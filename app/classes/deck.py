@@ -12,6 +12,7 @@ class Deck:
 		self.archetype = ""
 
 		self.cid = 0
+		self.price = 0
 
 	def commitDeck(self, dbm, eventId, new = 1):
 		with dbm.con:
@@ -85,8 +86,12 @@ class Deck:
 				card.name = c[1]
 				card.typeLine = c[2]
 				card.manaCost = c[3]
-				card.imageUrl = c[4]
-				card.altText = c[5]
+				try:
+					card.imageUrl = c[4]
+					#showImage in app.js has issues with quotes
+					card.altText = c[5].replace("'", "&apos;")
+				except:
+					pass
 				card.copies = int(c[6])
 				card.sideboard = int(c[7])
 
@@ -177,6 +182,13 @@ class Deck:
 					face.imageUrl = f[1]
 					face.altText = f[2]
 					card.faces.append(face)
+
+				dbm.cur.execute("SELECT p.price , p.foilPrice FROM magic.prices p JOIN cardToPrice ctp ON ctp.priceId = p.id WHERE ctp.cardId = %s ORDER BY p.`timestamp` DESC", (card.scryfallId, ))
+				price = dbm.cur.fetchone()
+
+				card.curPrice = price[0]
+				card.curFoilPrice = price[1]
+				self.price = self.price + card.curPrice
 
 				self.cards.append(card)
 

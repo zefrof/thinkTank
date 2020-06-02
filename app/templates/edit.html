@@ -20,7 +20,7 @@
 					<h6>Format</h6>
 					<select name="format" required>
 						{% for f in formats %}
-							<option value="{{f}}" {% if formats[f] == event.format %} selected="selected" {% endif %}>{{formats[f]}}</option>
+							<option value="{{f}}" {% if formats[f] == event.format %} selected {% endif %}>{{formats[f]}}</option>
 						{% endfor %}
 					</select>
 				</div>
@@ -43,7 +43,7 @@
 						<h6>Archetype</h6>
 						<select name="archetype">
 							{% for a in ark %}
-								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected="selected" {% endif %}>{{ark[a]}}</option>
+								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected {% endif %}>{{ark[a]}}</option>
 							{% endfor %}
 						</select>
 					</div>
@@ -62,7 +62,7 @@
 			{% endfor %}
 			<input type="hidden" name="cid" value="{{ event.cid }}">
 			<input type="submit" class="success button" value="Submit For Review">
-			<input type="button" class="alert button" value="Delete">
+			<input type="button" class="alert button" value="Cancel" onclick="window.location.href = '/submit/';">
 		</form>
 	</div>
 {% endblock %}
