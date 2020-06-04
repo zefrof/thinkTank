@@ -32,8 +32,11 @@ def mtgoScrape(url):
 
 	#Event date
 	date = tmp.find("p", class_="posted-in").text.split("on")[1].strip()
-	d = datetime.datetime.strptime(date, '%b %d, %Y')
+	d = datetime.datetime.strptime(date, '%B %d, %Y')
 	event.date = d.strftime('%Y-%m-%d')
+
+	#Event source
+	event.source = url
 
 	#UN-COMMENT FOR PROD
 	if event.eventExists(dbm) == True:
@@ -93,6 +96,9 @@ def mtgoScrape(url):
 			card.copies = n.text
 			deck.cards.append(card)
 
+	#Event player count
+	event.numPlayers = len(event.decks)
+	
 	event.commitEvent(dbm)
 
 	return event.cid

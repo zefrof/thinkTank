@@ -236,7 +236,7 @@ class Card:
 
 	def getCardId(self, name, dbm):
 		with dbm.con:
-			dbm.cur.execute("SELECT id FROM cards WHERE name = %s ", (name, ))
+			dbm.cur.execute("SELECT id FROM cards WHERE name = %s ORDER BY releaseDate DESC", (name, ))
 
 			if dbm.cur.rowcount > 0:
 				fetch = dbm.cur.fetchone()
@@ -244,12 +244,12 @@ class Card:
 				tempName = '%' + name + '%'
 				fill = '%//%'
 
-				dbm.cur.execute("SELECT id FROM `cards` WHERE `name` LIKE %s AND `name` LIKE %s ", (tempName, fill))
+				dbm.cur.execute("SELECT id FROM `cards` WHERE `name` LIKE %s AND `name` LIKE %s ORDER BY releaseDate DESC", (tempName, fill))
 
 				if dbm.cur.rowcount > 0:
 					fetch = dbm.cur.fetchone()
 				else:
-					dbm.cur.execute("SELECT id FROM cards WHERE REPLACE(name , '-', ' ') LIKE %s ", (name, ))
+					dbm.cur.execute("SELECT id FROM cards WHERE REPLACE(name , '-', ' ') LIKE %s ORDER BY releaseDate DESC", (name, ))
 					fetch = dbm.cur.fetchone()
 
 			return fetch[0]

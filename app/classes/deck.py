@@ -6,7 +6,7 @@ class Deck:
 	def __init__(self):
 		self.name = ""
 		self.pilot = ""
-		self.finish = 0
+		self.finish = ""
 		self.cards = []
 		self.sideboard = []
 		self.archetype = ""

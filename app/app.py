@@ -54,8 +54,6 @@ def submit():
 
 @app.route('/edit/', methods = ['POST', 'GET'])
 def edit():
-	#https://magic.wizards.com/en/articles/archive/mtgo-standings/legacy-super-qualifier-2020-05-15#decklists
-	#https://magic.wizards.com/en/articles/archive/mtgo-standings/standard-league-2020-05-14
 	cont = Content()
 	dbm = Database()
 	result = request.form

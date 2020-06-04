@@ -9,6 +9,7 @@ class Event:
 		self.date = ""
 		self.format = ""
 		self.numPlayers = 0
+		self.source = ""
 		self.decks = []
 
 		self.cid = 0
@@ -17,7 +18,7 @@ class Event:
 	def commitEvent(self, dbm):
 		with dbm.con:
 
-			dbm.cur.execute("INSERT INTO events (name, date, numPlayers) VALUES (%s, %s, %s)", (self.name, self.date, self.numPlayers))
+			dbm.cur.execute("INSERT INTO events (name, date, numPlayers, source) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, self.source))
 			self.cid = dbm.cur.lastrowid
 
 			self.eventToFormat(dbm, self.cid)
@@ -83,7 +84,8 @@ class Event:
 			self.numPlayers = fetch[2]
 			self.format = fetch[3]
 
-			dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (self.cid, ))
+			#Ordered by timestamp cause decks are 'always' saved in the order they place. Avoids having to have an 'order' column.
+			dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY `timestamp`", (self.cid, ))
 			fetch = dbm.cur.fetchall()
 
 			for d in fetch:
