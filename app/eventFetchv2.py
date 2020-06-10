@@ -44,7 +44,7 @@ def mtgoScrape(url):
 
 	#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
 	
-	for div in text.find_all("div", class_="deck-group"):
+	for index, div in enumerate(text.find_all("div", class_="deck-group")):
 		deck = Deck()
 		
 		#Deck pilot
@@ -56,6 +56,9 @@ def mtgoScrape(url):
 			deck.finish = re.sub('[^0-9]', "", tmp)
 
 		event.decks.append(deck)	
+
+		#Deck order
+		deck.ord = index
 
 		#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
 
@@ -69,7 +72,7 @@ def mtgoScrape(url):
 			print("!!! There's a problem with card counts in the mainboard")
 		
 		for n, m in zip(numbahs, mainboard):
-			#print("{} {}".format(n.text, m.text))
+			print("{} {}".format(n.text, m.text))
 
 			card = Card()
 			cid = card.getCardId(m.text, dbm)
@@ -87,7 +90,7 @@ def mtgoScrape(url):
 			print("!!! There's a problem with card counts in the sideboard")
 
 		for n, m in zip(sideNums, sideboard):
-			#print("{} {}".format(n.text, m.text))
+			print("{} {}".format(n.text, m.text))
 			
 			card = Card()
 			cid = card.getCardId(m.text, dbm)

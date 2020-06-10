@@ -252,7 +252,10 @@ class Card:
 					dbm.cur.execute("SELECT id FROM cards WHERE REPLACE(name , '-', ' ') LIKE %s ORDER BY releaseDate DESC", (name, ))
 					fetch = dbm.cur.fetchone()
 
-			return fetch[0]
+			try:
+				return fetch[0]
+			except:
+				print(name)
 
 	def commitCard(self, dbm):
 		with dbm.con:

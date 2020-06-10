@@ -84,8 +84,7 @@ class Event:
 			self.numPlayers = fetch[2]
 			self.format = fetch[3]
 
-			#Ordered by timestamp cause decks are 'always' saved in the order they place. Avoids having to have an 'order' column.
-			dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY `timestamp`", (self.cid, ))
+			dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY `order`", (self.cid, ))
 			fetch = dbm.cur.fetchall()
 
 			for d in fetch:
@@ -121,4 +120,8 @@ class Event:
 				dbm.cur.execute("DELETE FROM magic.decks WHERE id = %s", (d[0], ))
 
 			dbm.cur.execute("DELETE FROM magic.events WHERE id = %s", (self.cid, ))
+
+	def skipEvent(self, dbm):
+		with dbm.con:
+			dbm.cur.execute("UPDATE events SET active = 2 WHERE id = %s", (self.cid, ))
 			

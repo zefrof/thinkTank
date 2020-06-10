@@ -28,10 +28,6 @@
 			{% for deck in event.decks %}
 				<div class="grid-x grid-padding-x">
 					<div class="cell small-12 medium-3 large-3">
-						<h6>Deck Name</h6>
-						<input type="text" name="deckName" value="{{deck.name}}" required>
-					</div>
-					<div class="cell small-12 medium-3 large-3">
 						<h6>Deck Pilot</h6>
 						<input type="text" name="deckPilot" value="{{deck.pilot}}" required>
 					</div>
@@ -45,6 +41,11 @@
 							{% for a in ark %}
 								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected {% endif %}>{{ark[a]}}</option>
 							{% endfor %}
+						</select>
+					</div>
+					<div class="cell small-12 medium-3 large-3">
+						<h6>Sub-Archetype</h6>
+						<select name="subArchetype">
 						</select>
 					</div>
 				</div>

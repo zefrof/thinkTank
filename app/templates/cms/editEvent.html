@@ -28,10 +28,6 @@
 			{% for deck in event.decks %}
 				<div class="grid-x grid-padding-x">
 					<div class="cell small-12 medium-3 large-3">
-						<h6>Deck Name</h6>
-						<input type="text" name="deckName" value="{{deck.name}}" required>
-					</div>
-					<div class="cell small-12 medium-3 large-3">
 						<h6>Deck Pilot</h6>
 						<input type="text" name="deckPilot" value="{{deck.pilot}}" required>
 					</div>
@@ -41,10 +37,15 @@
 					</div>
 					<div class="cell small-12 medium-3 large-3">
 						<h6>Archetype</h6>
-						<select name="archetype" required>
+						<select name="archetype" required onchange="getSubArk(this.value);">
 							{% for a in ark %}
 								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected="selected" {% endif %}>{{ark[a]}}</option>
 							{% endfor %}
+						</select>
+					</div>
+					<div class="cell small-12 medium-3 large-3">
+						<h6>Sub-Archetype</h6>
+						<select name="subArchetype" required>
 						</select>
 					</div>
 				</div>
@@ -62,6 +63,7 @@
 			{% endfor %}
 			<input type="hidden" name="cid" value="{{ event.cid }}">
 			<input type="submit" class="success button" value="Activate and Save">
+			<input type="button" class="warning button" value="Skip Event" onclick="window.location.href = '/skip/' + '{{ event.cid }}';">
 			<input type="button" class="alert button" value="Delete" onclick="window.location.href = '/delevent/' + '{{ event.cid }}';">
 		</form>
 	</div>

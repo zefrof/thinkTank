@@ -1,4 +1,42 @@
 {% extends "/cms/cmsLayout.html" %}
 {% block body %}
 	<p>CMS home page</p>
+	{% with messages = get_flashed_messages() %}
+		 {% if messages %}
+			{% for message in messages %}
+			   <span>{{ message }}</span>
+			{% endfor %}
+		 {% endif %}
+	  {% endwith %}
+	<div>
+		<form id="arkForm" action="/archetype/" method="post">
+			<div class="grid-x grid-padding-x">
+				<div class="cell small-12 medium-4 large-4">
+					<input type="text" name="ark" placeholder="Enter New Archetype">
+				</div>
+				<div class="cell small-12 medium-4 large-4">
+					<input type="submit" class="success button" value="Submit">
+				</div>
+			</div>
+		</form>
+		<form id="subArkForm" action="/subarchetype/" method="post">
+			<div class="grid-x grid-padding-x">
+				<div class="cell small-12 medium-4 large-4">
+					<select name="ark">
+						<option>Select Archetype</option>
+						{% for a in ark %}
+							<option value="{{a}}">{{ark[a]}}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="cell small-12 medium-4 large-4">
+					<input type="text" name="subArk" placeholder="Enter Sub-Archetype">
+				</div>
+				<div class="cell small-12 medium-4 large-4">
+					<input type="submit" class="success button" value="Submit">
+				</div>
+			</div>
+		</form>
+	</div>		
+
 {% endblock %}

@@ -62,7 +62,7 @@ def edit():
 	event.cid = urlFilter(result['link'])
 	
 	if event.cid == 0:
-		return render_template('/eventExists.html')
+		return render_template('/submit.html')
 
 	event.getEvent(dbm)
 
@@ -120,7 +120,11 @@ def cmsHome():
 	try:
 		check = user.verifyUser(session['id'])
 		if check == True:
-			return render_template('cms/home.html')
+			dbm = Database()
+			cont = Content()
+			ark = cont.getArk(dbm, 1)
+
+			return render_template('cms/home.html', ark = ark)
 	except:
 		pass
 
@@ -246,4 +250,73 @@ def delEvent(eid = 0):
 		else:
 			return redirect(url_for('home'))
 	except:
+		return redirect(url_for('home'))
+
+@app.route('/skip/<int:eid>')
+def skip(eid = 0):
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			dbm = Database()
+
+			event = Event()
+			event.cid = eid
+			event.skipEvent(dbm)
+
+			return redirect(url_for('editEvent'))
+		else:
+			return redirect(url_for('home'))
+	except:
+		return redirect(url_for('home'))
+
+@app.route('/archetype/', methods = ['POST', 'GET'])
+def archetype():
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			if request.method == 'POST':
+				result = request.form
+				dbm = Database()
+				with dbm.con:
+					dbm.cur.execute("SELECT id FROM archetypes WHERE name LIKE %s", (result['ark'], ))
+
+					if dbm.cur.rowcount >= 1:
+						flash("Archetype already exists.")
+					else:
+						dbm.cur.execute("INSERT INTO archetypes (name) VALUES (%s)", (result['ark'], ))
+						flash("Archetype added.")
+
+			return redirect(url_for('cmsIndex'))
+		else:
+			return redirect(url_for('home'))
+	except:
+		return redirect(url_for('home'))
+
+@app.route('/subarchetype/', methods = ['POST', 'GET'])
+def subArchetype():
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			if request.method == 'POST':
+				result = request.form
+				dbm = Database()
+				with dbm.con:
+					dbm.cur.execute("SELECT id FROM subArchetypes WHERE name LIKE %s", (result['subArk'], ))
+
+					if dbm.cur.rowcount >= 1:
+						fetch = dbm.cur.fetchone()
+						dbm.cur.execute("INSERT INTO subArchetypeToArchetype (subArchetypeId, archetypeId) VALUES (%s, %s)", (fetch[0], result['ark']))
+					else:
+						dbm.cur.execute("INSERT INTO subArchetypes (name) VALUES (%s)", (result['subArk'], ))
+						arkId = dbm.cur.lastrowid
+						dbm.cur.execute("INSERT INTO subArchetypeToArchetype (subArchetypeId, archetypeId) VALUES (%s, %s)", (arkId, result['ark']))
+
+			return redirect(url_for('cmsIndex'))
+		else:
+			return redirect(url_for('home'))
+	except Exception as e:
+		print(e)
 		return redirect(url_for('home'))

@@ -93,6 +93,10 @@ class Content:
 			fetch = dbm.cur.fetchone()
 			return fetch[0]
 
+	def getMetagame(self, dbm, fid, startDate, endDate):
+		with dbm.con:
+			dbm.cur.execute("SELECT d.id, d.name, a.name, e.`date` FROM magic.decks d JOIN magic.archetypeToDeck atd ON atd.deckId = d.id JOIN magic.archetypes a ON a.id = atd.archetypeId JOIN magic.deckToEvent dte ON dte.deckId  = d.id JOIN magic.eventToFormat etf ON etf.eventId = dte.eventId JOIN magic.events e ON e.id = dte.eventId WHERE etf.formatId = %s AND e.`date` BETWEEN %s AND %s", (fid, startDate, endDate))
+
 class Database:
 	def __init__(self):
 

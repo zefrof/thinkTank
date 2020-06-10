@@ -21,3 +21,7 @@ function showImage(imgUrl, altText, price = '0.00', foilPrice = '0.00') {
 		document.getElementById('foilPrice').innerText = foilPrice + '$';
 	}
 }
+
+function getSubArk(arkId) {
+	console.log(arkId);
+}
