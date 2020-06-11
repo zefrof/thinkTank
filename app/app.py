@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, flash, redirect, url_for
+from flask import Flask, render_template, request, session, flash, redirect, url_for, json
 from classes.general import Database, Content, User
 from classes.event import Event
 from classes.deck import Deck
@@ -320,3 +320,15 @@ def subArchetype():
 	except Exception as e:
 		print(e)
 		return redirect(url_for('home'))
+
+@app.route('/getsubark/', methods = ['POST', 'GET'])
+def getSubArk():
+	if request.method == 'POST':
+		result = request.form
+		dbm = Database()
+	
+		with dbm.con:
+			dbm.cur.execute("SELECT id, name FROM subArchetypes s JOIN subArchetypeToArchetype saa ON saa.subArchetypeId = s.id WHERE saa.archetypeId = %s", (result['arkId']))
+			fetch = dbm.cur.fetchall()
+
+			return json.dumps(fetch)

@@ -1,6 +1,6 @@
 function changeDeck(deckId) {
-    //console.log(deckId);
-    window.location.href = '/deck/' + deckId;
+	//console.log(deckId);
+	window.location.href = '/deck/' + deckId;
 }
 
 function showImage(imgUrl, altText, price = '0.00', foilPrice = '0.00') {
@@ -23,5 +23,25 @@ function showImage(imgUrl, altText, price = '0.00', foilPrice = '0.00') {
 }
 
 function getSubArk(arkId) {
-	console.log(arkId);
+	//console.log(arkId);
+
+	$.ajax({
+		method: "POST",
+		datatype: 'json',
+		data: { arkId: arkId },
+		url: '/getsubark/',
+		success: function(response) {
+			//console.log(response);
+			subArks = JSON.parse(response);
+
+			var select = document.getElementById('subArchetype');
+			select.options.length = 0; //possible memory leak?
+			for(i = 0; i < subArks.length; i++) {
+				var opt = document.createElement('option');
+				opt.value = subArks[i][0];
+				opt.innerHTML = subArks[i][1];
+				select.appendChild(opt);
+			}
+		}
+	});
 }
