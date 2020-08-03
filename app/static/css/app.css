@@ -85,7 +85,10 @@ nav a {
     padding: 32px 10px !important;
 }
 nav a.menu {
-    padding: 32px 10px 32px 25px !important;
+    padding: 32px 10px !important;
+}
+nav a.last {
+    padding: 32px 25px 32px 10px !important;
 }
 /* Figure out extra padding for dropdown arrow */
 
