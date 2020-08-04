@@ -193,11 +193,17 @@ li.is-submenu-item.is-accordion-submenu-item a:hover, li.is-submenu-item.is-acco
 .padTop {
     padding-top: 15px;
 }
+.padTopXL {
+    padding-top: 50px;
+}
 .noPadTop {
     padding-top: 0px;
 }
 .padBot {
     padding-bottom: 15px;
+}
+.padBotXL {
+    padding-bottom: 50px !important;
 }
 .noPadBot {
     padding-bottom: 0px;
@@ -228,6 +234,9 @@ li.is-submenu-item.is-accordion-submenu-item a:hover, li.is-submenu-item.is-acco
 }
 .marBot {
     margin-bottom: 15px;
+}
+.marBotXL {
+    margin-bottom: 50px !important;
 }
 .noMarBot {
     margin-bottom: 0px;
