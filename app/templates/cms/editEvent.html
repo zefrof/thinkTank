@@ -1,6 +1,6 @@
 {% extends "/cms/cmsLayout.html" %}
 {% block body %}
-	<p>Edit Event</p>
+	<h4>Edit Event- <a href="{{event.source}}">Source</a></h4>
 	<div>
 		<form id="eventForm" action="/saveevent/1" method="post">
 			<div class="grid-x grid-padding-x">
@@ -10,7 +10,7 @@
 				</div>
 				<div class="cell small-12 medium-3 large-3">
 					<h6>Date</h6>
-					<input type="text" name="eventDate" value="{{event.date}}" required>
+					<input type="date" name="eventDate" value="{{event.date}}" required>
 				</div>
 				<div class="cell small-12 medium-3 large-3">
 					<h6>Number of Players</h6>
@@ -20,7 +20,7 @@
 					<h6>Format</h6>
 					<select name="format" required>
 						{% for f in formats %}
-							<option value="{{f}}" {% if formats[f] == event.format %} selected="selected" {% endif %}>{{formats[f]}}</option>
+							<option value="{{f}}" {% if formats[f] == event.format %} selected {% endif %}>{{formats[f]}}</option>
 						{% endfor %}
 					</select>
 				</div>
@@ -37,29 +37,34 @@
 					</div>
 					<div class="cell small-12 medium-3 large-3">
 						<h6>Archetype</h6>
-						<select name="archetype" required onchange="getSubArk(this.value);">
+						<select name="archetype" required onchange="getSubArk(this.value, 'subArchetype{{loop.index}}');">
+							<option value="0"></option>
 							{% for a in ark %}
-								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected="selected" {% endif %}>{{ark[a]}}</option>
+								<option value="{{a}}" {% if a == deck.archetype %} selected {% endif %}>{{ark[a]}}</option>
 							{% endfor %}
 						</select>
 					</div>
 					<div class="cell small-12 medium-3 large-3">
 						<h6>Sub-Archetype</h6>
-						<select id="subArchetype" name="subArchetype" required>
+						<select name="subArchetype" id="subArchetype{{loop.index}}" required>
+							<option value="0"></option>
 						</select>
 					</div>
 				</div>
 				<div class="grid-x grid-padding-x">
 					<div class="cell small-12 medium-6 large-6">
-						<h6>Mainboard</h6>
-						<textarea name="mainboard" cols="40" rows="10" required>{% for card in deck.cards %}{{card.copies}} | {{card.name}} | {{card.scryfallId}}&#10;{% endfor %}</textarea>
+						<h6>Mainboard ({{deck.mainboardCount}})</h6>
+						<textarea name="mainboard" cols="40" rows="10" required>{% for card in deck.cards %}{{card.copies}} {{card.name}} *{{card.scryfallId}}&#10;{% endfor %}</textarea>
 					</div>
 					<div class="cell small-12 medium-6 large-6">
-						<h6>Sideboard</h6>
-						<textarea name="sideboard" cols="40" rows="10" required>{% for card in deck.sideboard %}{{card.copies}} | {{card.name}} | {{card.scryfallId}}&#10;{% endfor %}</textarea>
+						<h6>Sideboard ({{deck.sideboardCount}})</h6>
+						<textarea name="sideboard" cols="40" rows="10" required>{% for card in deck.sideboard %}{{card.copies}} {{card.name}} *{{card.scryfallId}}&#10;{% endfor %}</textarea>
 					</div>
 				</div>
 				<input type="hidden" name="did" value="{{ deck.cid }}">
+				<script>
+					getSubArk('{{deck.archetype}}', 'subArchetype{{loop.index}}');
+				</script>
 			{% endfor %}
 			<input type="hidden" name="cid" value="{{ event.cid }}">
 			<input type="submit" class="success button" value="Activate and Save">

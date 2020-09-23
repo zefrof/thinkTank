@@ -82,8 +82,16 @@ nav .grid-container {
 nav a {
     color: #F6F6F6;
     background-color: #0598B9 !important;
+    padding: 32px 10px !important;
+}
+nav a.menu {
+    padding: 32px 10px !important;
+}
+nav a.last {
     padding: 32px 25px 32px 10px !important;
 }
+/* Figure out extra padding for dropdown arrow */
+
 nav a::after {
     border-color: #F6F6F6 transparent transparent !important;
 }
@@ -185,11 +193,17 @@ li.is-submenu-item.is-accordion-submenu-item a:hover, li.is-submenu-item.is-acco
 .padTop {
     padding-top: 15px;
 }
+.padTopXL {
+    padding-top: 50px;
+}
 .noPadTop {
     padding-top: 0px;
 }
 .padBot {
     padding-bottom: 15px;
+}
+.padBotXL {
+    padding-bottom: 50px !important;
 }
 .noPadBot {
     padding-bottom: 0px;
@@ -220,6 +234,9 @@ li.is-submenu-item.is-accordion-submenu-item a:hover, li.is-submenu-item.is-acco
 }
 .marBot {
     margin-bottom: 15px;
+}
+.marBotXL {
+    margin-bottom: 50px !important;
 }
 .noMarBot {
     margin-bottom: 0px;

@@ -1,36 +1,59 @@
 from flask import Flask, render_template, request, session, flash, redirect, url_for, json
+from datetime import date, datetime, timedelta
 from classes.general import Database, Content, User
 from classes.event import Event
 from classes.deck import Deck
 from classes.card import Card
-from eventFetchv2 import urlFilter
+from eventFetch import urlFilter
 app = Flask(__name__)
 app.secret_key = b"\xf0/\xa1\xdb'\xfe!\xf68#\xb1\x19\x18\x01\xfb\x0f"
 
 #FRONT END
 @app.route('/')
-@app.route('/<int:page>')
-def home(fid = 0, page = 0):
+def home():
 	dbm = Database()
 	cont = Content()
 
-	events = cont.fetchRecentEvents(dbm, fid, page)
-	
-	half = len(events) // 2
-	e1 = events[:half]
-	e2 = events[half:]
+	events = cont.fetchRecentEvents(dbm, date.today())
 
-	return render_template('index.html', e1 = e1, e2 = e2, page = page, fid = fid)
+	#raise ValueError('debug', e1)
+	
+	half = -(-len(events[0]) // 2) #https://stackoverflow.com/a/17511341
+	e1 = events[0][:half]
+	e2 = events[0][half:]
+
+	return render_template('index.html', e1 = e1, e2 = e2, day = events[1])
 
 @app.route('/event/<int:fid>')
-@app.route('/event/<int:fid>/<int:page>')
-def event(fid = 0, page = 0):
+def event(fid = 0):
 	dbm = Database()
 	cont = Content()
 
-	events = cont.fetchRecentEvents(dbm, fid, page)
+	events = cont.fetchRecentEvents(dbm, date.today(), fid)
 
-	return render_template('event.html', events = events, page = page, fid = fid)
+	return render_template('event.html', events = events, fid = fid)
+
+@app.route('/loadmore/', methods = ['POST'])
+def loadMore():
+	if request.method == 'POST':
+		result = request.form
+		d = datetime.strptime(result['day'], '%Y-%m-%d')
+		d = d - timedelta(days = 1)
+
+		dbm = Database()
+		cont = Content()
+
+		events = cont.fetchRecentEvents(dbm, d)
+
+		jason = '{"events": ['
+		for e in events[0]:
+			jason = jason + '{{"eid":"{0}", "name":"{1}", "date":"{2}", "numPlayers":"{3}", "firstPlaceDeckId":"{4}"}},'.format(e.cid, e.name, e.date, e.numPlayers, e.firstPlaceDeckId)
+		jason = jason[:-1]
+		jason = jason + ']}'
+
+		return jason
+	else:
+		return "She broke"
 
 @app.route('/deck/<cid>')
 def deck(cid = 0):
@@ -46,7 +69,6 @@ def deck(cid = 0):
 
 	return render_template('deck.html', deck = deck, decks = decks)
 
-@app.route('/submit')
 @app.route('/submit/')
 def submit():
 	return render_template('submit.html')
@@ -62,8 +84,15 @@ def edit():
 	event.cid = urlFilter(result['link'])
 	
 	if event.cid == 0:
-		return render_template('/submit.html')
-
+		flash("Event already exists! If you belive this to be an error, contact us in the footer.")
+		return redirect(url_for('submit'))
+	elif event.cid == -2:
+		flash("Event submitted for manuel entry!")
+		return redirect(url_for('submit'))
+	elif event.cid == -1:
+		flash("Not a valid URL")
+		return redirect(url_for('submit'))
+	
 	event.getEvent(dbm)
 
 	formats = cont.getFormats(dbm, 1)
@@ -71,9 +100,23 @@ def edit():
 
 	return render_template('edit.html', event = event, formats = formats, ark = ark)
 
+@app.route('/search/', methods = ['POST', 'GET'])
+def search(fid = 0):
+	if request.method == 'POST':
+		result = request.form
+		#print(result['searchSmall'])
+		
+		dbm = Database()
+		cont = Content()
+		events = cont.search(dbm, result['searchSmall'])
+
+		if len(events) == 0:
+			#TODO show user something legit here
+			return "No Results Found"
+		else:
+			return render_template('event.html', events = events, fid = fid)
 
 #CMS
-@app.route('/cms')
 @app.route('/cms/')
 def cmsIndex():
 	user = User()
@@ -130,7 +173,6 @@ def cmsHome():
 
 	return redirect(url_for('cmsIndex'))
 
-@app.route('/editevent')
 @app.route('/editevent/')
 @app.route('/editevent/<cid>')
 def editEvent(cid = 0):
@@ -176,19 +218,23 @@ def saveEvent(active = 0):
 		#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
 
 		deckIds = result.getlist('did')
-		deckNames = result.getlist('deckName')
 		deckPilot = result.getlist('deckPilot')
 		finish = result.getlist('finish')
 		ark = result.getlist('archetype')
+		subArk = result.getlist('subArchetype')
 		mainboard = result.getlist('mainboard')
 		sideboard = result.getlist('sideboard')
-		for i in range(len(deckNames)):
+
+		#print(len(deckPilot))
+		#print(ark)
+		#print(subArk)
+		for i in range(len(deckPilot)):
 			deck = Deck()
 			deck.cid = deckIds[i]
-			deck.name = deckNames[i]
 			deck.pilot = deckPilot[i]
 			deck.finish = finish[i]
 			deck.archetype = ark[i]
+			deck.subArk = subArk[i]
 
 			if deck.pilot == '':
 				deck.pilot = 'Unknown'
@@ -197,29 +243,47 @@ def saveEvent(active = 0):
 			side = sideboard[i].splitlines()
 
 			for c in main:
-				spl = c.split(' | ')
-				card = Card()
-				card.copies = spl[0]
-				
 				try:
-					card.scryfallId = spl[2]
-				except:
-					card.scryfallId = card.getCardId(spl[1], dbm)
+					qty = c.strip().split(" ", 1)
+					name = qty[1].split("*")
 
-				deck.cards.append(card)
+					card = Card()
+					card.copies = qty[0].strip()
+					card.name = name[0].strip()
+
+					if len(name) == 2:
+						card.scryfallId = name[1]
+					else:
+						card.scryfallId = card.getCardId(card.name, dbm)
+
+					deck.cards.append(card)
+				except Exception as e:
+					print("save exception")
+					print(e)
+					flash("Formatting error!")
+					return redirect(url_for('submit'))
 
 			for c in side:
-				spl = c.split(' | ')
-				card = Card()
-				card.copies = spl[0]
-
 				try:
-					card.scryfallId = spl[2]
-				except:
-					card.scryfallId = card.getCardId(spl[1], dbm)
+					qty = c.strip().split(" ", 1)
+					name = qty[1].split("*")
 
-				card.sideboard = 1
-				deck.cards.append(card)
+					card = Card()
+					card.copies = qty[0].strip()
+					card.name = name[0].strip()
+
+					if len(name) == 2:
+						card.scryfallId = name[1]
+					else:
+						card.scryfallId = card.getCardId(card.name, dbm)
+
+					card.sideboard = 1
+					deck.cards.append(card)
+				except Exception as e:
+					print("save exception")
+					print(e)
+					flash("Formatting error!")
+					return redirect(url_for('submit'))
 
 			event.decks.append(deck)
 			#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))

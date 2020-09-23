@@ -2,7 +2,7 @@
 {% block content %}
 	<h2>Edit Event</h2>
 	<div>
-		<form id="eventForm" action="/saveevent" method="post">
+		<form id="eventForm" action="/saveevent/" method="post">
 			<div class="grid-x grid-padding-x">
 				<div class="cell small-12 medium-3 large-3">
 					<h6>Event</h6>
@@ -37,7 +37,8 @@
 					</div>
 					<div class="cell small-12 medium-3 large-3">
 						<h6>Archetype</h6>
-						<select name="archetype">
+						<select name="archetype" onchange="getSubArk(this.value, 'subArchetype{{loop.index}}');">
+							<option value="0"></option>
 							{% for a in ark %}
 								<option value="{{a}}" {% if ark[a] == deck.archetype %} selected {% endif %}>{{ark[a]}}</option>
 							{% endfor %}
@@ -45,18 +46,19 @@
 					</div>
 					<div class="cell small-12 medium-3 large-3">
 						<h6>Sub-Archetype</h6>
-						<select name="subArchetype">
+						<select id="subArchetype{{loop.index}}" name="subArchetype">
+							<option value="0"></option>
 						</select>
 					</div>
 				</div>
 				<div class="grid-x grid-padding-x">
 					<div class="cell small-12 medium-6 large-6">
-						<h6>Mainboard</h6>
-						<textarea name="mainboard" cols="40" rows="10" required>{% for card in deck.cards %}{{card.copies}} | {{card.name}} | {{card.scryfallId}}&#10;{% endfor %}</textarea>
+						<h6>Mainboard ({{deck.mainboardCount}})</h6>
+						<textarea name="mainboard" cols="40" rows="10" required>{% for card in deck.cards %}{{card.copies}} {{card.name}} *{{card.scryfallId}}&#10;{% endfor %}</textarea>
 					</div>
 					<div class="cell small-12 medium-6 large-6">
-						<h6>Sideboard</h6>
-						<textarea name="sideboard" cols="40" rows="10" required>{% for card in deck.sideboard %}{{card.copies}} | {{card.name}} | {{card.scryfallId}}&#10;{% endfor %}</textarea>
+						<h6>Sideboard ({{deck.sideboardCount}})</h6>
+						<textarea name="sideboard" cols="40" rows="10" required>{% for card in deck.sideboard %}{{card.copies}} {{card.name}} *{{card.scryfallId}}&#10;{% endfor %}</textarea>
 					</div>
 				</div>
 				<input type="hidden" name="did" value="{{ deck.cid }}">

@@ -52,11 +52,8 @@
 				{% endfor %}
 			</div>
 			<div class="celfl alignCenter">
-				<!-- Page Numbers / Previous & Next -->
-				{% if page > 0 %}
-					<div class="cell small-6"><a class="small button info float-right" href="/{{page - 1}}">Prev</a></div>
-				{% endif %}
-				<div class="cell small-6"><a class="small button info" href="/{{page + 1}}">Next</a></div>
+				<!-- Load moar master race -->
+				<div class="cell small-6"><input type="button" value="Load More" class="small button info" onclick="loadMore('{{day}}');"></div>
 			</div>
 		</div>
 	</div>

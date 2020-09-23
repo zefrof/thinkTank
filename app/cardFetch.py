@@ -16,8 +16,10 @@ def downloadFile(url):
 	return localFilename
 
 def main():
-
-	bulkFile = downloadFile("https://archive.scryfall.com/json/scryfall-default-cards.json")
+	getBulkUrl = requests.get("https://api.scryfall.com/bulk-data/default_cards")
+	url = getBulkUrl.json()
+	
+	bulkFile = downloadFile(url['download_uri'])
 	#bulkFile = "testFile.json"
 
 	try:
@@ -51,4 +53,4 @@ def main():
 	print("Done")
 
 if __name__== "__main__":
-  main()
+	main()

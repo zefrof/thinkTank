@@ -4,6 +4,10 @@
 		Think Tank CMS
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- jQuery loaded ealy so editEvent.html works-->
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+		<!-- Custom JS loaded early so editEvent.html works-->
+		<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 	</head>
 	<body>
 		<header>
@@ -21,8 +25,6 @@
 		</main>
 		<footer>
 			&copy; current year
-			<!-- jQuery -->
-			<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 			<!-- Foundation CSS -->
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.4.3/dist/css/foundation.min.css" integrity="sha256-GSio8qamaXapM8Fq9JYdGNTvk/dgs+cMLgPeevOYEx0= sha384-wAweiGTn38CY2DSwAaEffed6iMeflc0FMiuptanbN4J+ib+342gKGpvYRWubPd/+ sha512-QHEb6jOC8SaGTmYmGU19u2FhIfeG+t/hSacIWPpDzOp5yygnthL3JwnilM7LM1dOAbJv62R+/FICfsrKUqv4Gg==" crossorigin="anonymous">
 			<!-- Foundation JS -->
@@ -31,8 +33,6 @@
 			<script>$(document).foundation();</script>
 			<!-- Style sheet -->
 			<link rel="stylesheet" href="{{ url_for('static', filename='css/cms.css') }}">
-			<!-- Custom JS -->
-			<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 		</footer>
 	</body>
 </html>

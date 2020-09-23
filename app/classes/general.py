@@ -1,5 +1,6 @@
 import time, json, requests, pymysql, string, random
 from passlib.hash import bcrypt
+from datetime import datetime, timedelta
 from classes.event import Event
 from classes.deck import Deck
 from classes.card import Card, Face
@@ -9,20 +10,23 @@ class Content:
 	def __init__(self):
 		pass
 
-	def fetchRecentEvents(self, dbm, fid, page):
+	def fetchRecentEvents(self, dbm, day, fid = 0):
 		events = []
-		if page < 0:
-			page = 0
-
-		offset = page * 10
 		with dbm.con:
-			if fid == 0:
-				#Doing stupid pagination for now
-				dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 ORDER BY e.date DESC LIMIT %s, 10 ", (offset, ))
-				fetch = dbm.cur.fetchall()
-			else:
-				dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id WHERE e.active = 1 AND ef.formatId = %s ORDER BY e.date DESC LIMIT %s, 10 ", (fid, offset))
-				fetch = dbm.cur.fetchall()
+			while(1):
+				if fid == 0:
+					dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 AND e.`date` = %s ORDER BY e.date", (day.strftime('%Y-%m-%d'), ))
+					fetch = dbm.cur.fetchall()
+				else:
+					dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id WHERE e.active = 1 AND e.`date` = %s AND ef.formatId = %s ORDER BY e.date DESC", (day, fid))
+					fetch = dbm.cur.fetchall()
+				if len(fetch) == 0:
+					day = day - timedelta(days = 1)
+				else:
+					break
+
+			#if len(fetch) == 0:
+			#	self.fetchRecentEvents(dbm, day - timedelta(days = 1), fid)
 
 			for x in fetch:
 				event = Event()
@@ -31,13 +35,13 @@ class Content:
 				event.date = x[2]
 				event.numPlayers = x[3]
 
-				dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY d.finish LIMIT 1 ", (event.cid, ))
+				dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s AND d.`order` = 0 ORDER BY d.`order`", (event.cid, ))
 				f = dbm.cur.fetchone()
 				event.firstPlaceDeckId = f[0]
 
 				events.append(event)
 
-			return events
+			return events, day
 
 	def fetchDecksInEvent(self, dbm, deckId):
 		decks = {}
@@ -46,11 +50,12 @@ class Content:
 			if dbm.cur.rowcount == 1:
 				eid = dbm.cur.fetchone()
 
-				dbm.cur.execute("SELECT d.id, d.name, d.pilot FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (eid[0], ))
+				dbm.cur.execute("SELECT d.id, d.pilot, sa.name AS subArkName FROM decks d JOIN deckToEvent de ON de.deckId = d.id JOIN subArchetypeToDeck sad ON sad.deckId = d.id JOIN subArchetypes sa ON sa.id = sad.subArchetypeId WHERE de.eventId = %s ORDER BY `order`", (eid[0], ))
 				fetch = dbm.cur.fetchall()
 
 				for f in fetch:
-					decks[f[0]] = f[1] + " - " + f[2]
+					#TODO
+					decks[f[0]] = f[2] + " - " + f[1]
 					
 					#tDict = {'id' : f[0], 'name' : f[1]}
 					#decks.append(tDict)
@@ -95,7 +100,32 @@ class Content:
 
 	def getMetagame(self, dbm, fid, startDate, endDate):
 		with dbm.con:
-			dbm.cur.execute("SELECT d.id, d.name, a.name, e.`date` FROM magic.decks d JOIN magic.archetypeToDeck atd ON atd.deckId = d.id JOIN magic.archetypes a ON a.id = atd.archetypeId JOIN magic.deckToEvent dte ON dte.deckId  = d.id JOIN magic.eventToFormat etf ON etf.eventId = dte.eventId JOIN magic.events e ON e.id = dte.eventId WHERE etf.formatId = %s AND e.`date` BETWEEN %s AND %s", (fid, startDate, endDate))
+			dbm.cur.execute("SELECT d.id, a.name, e.`date` FROM magic.decks d JOIN magic.archetypeToDeck atd ON atd.deckId = d.id JOIN magic.archetypes a ON a.id = atd.archetypeId JOIN magic.deckToEvent dte ON dte.deckId  = d.id JOIN magic.eventToFormat etf ON etf.eventId = dte.eventId JOIN magic.events e ON e.id = dte.eventId WHERE etf.formatId = %s AND e.`date` BETWEEN %s AND %s", (fid, startDate, endDate))
+
+	def search(self, dbm, searchTearm):
+		events = []
+		with dbm.con:
+			eventSearch = "%" + searchTearm + "%"
+			dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM `events` e WHERE e.active = 1 AND e.name LIKE %s ORDER BY e.date DESC", (eventSearch, ))
+			fetch = dbm.cur.fetchall()
+
+			dbm.cur.execute("SELECT e.id, e.name, e.date, e.numPlayers FROM archetypes a JOIN archetypeToDeck atd ON atd.archetypeId = a.id JOIN deckToEvent dte ON atd.deckId = dte.deckId JOIN events e ON e.id = dte.eventId WHERE a.name LIKE %s", (eventSearch, ))
+			fetch = fetch + dbm.cur.fetchall()
+
+			for x in fetch:
+				event = Event()
+				event.cid = x[0]
+				event.name = x[1]
+				event.date = x[2]
+				event.numPlayers = x[3]
+
+				dbm.cur.execute("SELECT d.id FROM decks d JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY d.`order` LIMIT 1 ", (event.cid, ))
+				f = dbm.cur.fetchone()
+				event.firstPlaceDeckId = f[0]
+
+				events.append(event)
+
+			return events
 
 class Database:
 	def __init__(self):

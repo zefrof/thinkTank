@@ -230,7 +230,7 @@ class Card:
 			elif full == 0:
 				dbm.cur.execute("SELECT c.id, c.name FROM cards c WHERE c.id = %s LIMIT 1", (cid, ))
 				fetch = dbm.cur.fetchone()
-
+				
 				self.scryfallId = fetch[0]
 				self.name = fetch[0]
 
