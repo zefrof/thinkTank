@@ -5,7 +5,7 @@
 			<div class="cell large-12">
 				<h3>Recent Events</h3>
 			</div>
-			<div class="cell large-6 small-12 rightBorder">
+			<div class="cell large-6 small-12 rightBorder" id="col1">
 				<!-- List of Recent Events -->
 				{% for e in e1 %}
 					<div class="cell large-6">
@@ -28,7 +28,7 @@
 					</div>
 				{% endfor %}
 			</div>
-			<div class="cell large-6 small-12">
+			<div class="cell large-6 small-12" id="col2">
 				<!-- List of Recent Events Cont -->
 				{% for e in e2 %}
 					<div class="cell large-6">
@@ -53,7 +53,7 @@
 			</div>
 			<div class="celfl alignCenter">
 				<!-- Load moar master race -->
-				<div class="cell small-6"><input type="button" value="Load More" class="small button info" onclick="loadMore('{{day}}');"></div>
+				<div class="cell small-6"><input id="loadMore" type="button" value="Load More" class="small button info" onclick="loadMore('{{day}}');"></div>
 			</div>
 		</div>
 	</div>

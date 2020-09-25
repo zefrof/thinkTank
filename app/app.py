@@ -31,7 +31,7 @@ def event(fid = 0):
 
 	events = cont.fetchRecentEvents(dbm, date.today(), fid)
 
-	return render_template('event.html', events = events, fid = fid)
+	return render_template('event.html', events = events[0], fid = fid, day = events[1])
 
 @app.route('/loadmore/', methods = ['POST'])
 def loadMore():
