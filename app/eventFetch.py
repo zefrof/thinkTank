@@ -1,182 +1,138 @@
-import requests, re
+import requests, re, datetime
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 from classes.general import Database
 from classes.event import Event
 from classes.deck import Deck
 from classes.card import Card, Face
 
-def main():
+def urlFilter(url):
+	if isUrl(url):
+		if "wizards.com" in url:
+			return mtgoScrape(url)
+		else:
+			return emptyEvent(url)
+	else:
+		print('not a url')
+		return -1
 
-	errCount = 0
-	url = "https://www.tcdecks.net/deck.php?id="
-
+def mtgoScrape(url):
+	page = requests.get(url)
 	dbm = Database()
 
-	index = 0
-	end = 0
+	if(page.status_code == 404):
+		print("404 Error")
+		return -1
 
-	with dbm.con:
-		dbm.cur.execute("SELECT `index` FROM scrapeInfo WHERE id = 1")
-		tmp = dbm.cur.fetchone()
-		print(tmp[0])
-		index = tmp[0] - 3
-		if index <= 0:
-			index = 1
+	event = Event()
 
-		end = index + 1003
+	text = BeautifulSoup(page.content, features="html.parser")
+	
+	#Event name
+	tmp = text.find("div", id="main-content")
+	event.name = tmp.find("h1").text
 
+	#Event format
+	event.format = event.name.split()[0].strip()
 
-	while errCount < 5:
-		page = requests.get(url + str(index))
+	#Event date
+	date = tmp.find("p", class_="posted-in").text.split("on")[1].strip()
+	d = datetime.datetime.strptime(date, '%B %d, %Y')
+	event.date = d.strftime('%Y-%m-%d')
 
-		print(index)
+	#Event source
+	event.source = url
 
-		#Probably not needed
-		if(page.status_code == 404):
-			print("404 Error at: %d" % (index))
-			errCount += 1
-			index += 1
-			continue
+	#UN-COMMENT FOR PROD
+	if event.eventExists(dbm) == True:
+		return 0
 
-		if index == end:
-			break
-
-		event = Event()
-
-		text = BeautifulSoup(page.content, features="html.parser")
-		split = text.find('h5').text.split('|')
-
-		event.format = split[0].replace("Format:", "")
-		event.format = re.sub(r'[\(\[].*?[\)\]]', ' ', event.format)
-		event.format = event.format.replace("Archive", "")
-		event.format = event.format.strip()
-
-		if event.format == "Vintage Old School":
-			event.format = "Old School"
-
-		event.numPlayers = split[1].replace("Number of Players:", "")
-		event.numPlayers = event.numPlayers.strip()
-
-		if event.numPlayers == "Unknown":
-			event.numPlayers = 0
-
-		event.date = split[2].replace("Date:", "")
-		event.date = event.date.strip()
+	#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
+	
+	for index, div in enumerate(text.find_all("div", class_="deck-group")):
+		deck = Deck()
 		
-		try:
-			tmp = event.date.split("/")
-			event.date = tmp[2] + "/" + tmp[1] + "/" + tmp[0]
-		except:
-			event.date = "0000/00/00"
+		#Deck pilot
+		deck.pilot = div.find("span", class_="deck-meta").text.split()[0].strip()
 
-		event.name = text.find('h3').text
+		#Deck pos
+		if "Place" in div.find("span", class_="deck-meta").text:
+			tmp = div.find("span", class_="deck-meta").text.split('(')[1].split(')')[0]
+			deck.finish = re.sub('[^0-9]', "", tmp)
 
-		if event.name == "":
-			errCount += 1
-			index += 1
-			continue
+		event.decks.append(deck)	
 
-		if event.eventExists(dbm) == True:
-			index += 1
-			continue
+		#Deck order
+		deck.ord = index
 
-		#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (event.name, event.date, event.format, event.numPlayers))
+		#print("### Pilot: %s | Finish: %s | Archetype: %s" % (deck.pilot, deck.finish, deck.archetype))
 
-		#Iterate through decks at event
-		for row in text.findAll('td'):
+		#Mainboard
+		deckText = div.find("div", class_="sorted-by-overview-container")
+		
+		numbahs = deckText.find_all("span", class_="card-count")
+		mainboard = deckText.find_all("span", class_="card-name")
+
+		if len(numbahs) != len(mainboard):
+			print("!!! There's a problem with card counts in the mainboard")
+		
+		for n, m in zip(numbahs, mainboard):
+			#print("{} {}".format(n.text, m.text))
+
 			try:
-				if "principal" in row['class']:
-					deckPage = requests.get('https://www.tcdecks.net/' + row.a['href'])
-					deckText = BeautifulSoup(deckPage.content, features="html.parser")
-
-					deck = Deck()
-
-					deckInfo = deckText.find('th').text.strip()
-					split = deckInfo.split('playing')
-					deck.pilot = split[0].strip()
-					deck.archetype = split[1].strip()
-
-					place = deckText.findAll('th')[1].text.strip()
-					place = place.split(' ')[1]
-
-					try:
-						deck.finish = int(place)
-					except:
-						deck.finish = 0
-
-					ark = deckText.findAll('th')[2].text.strip()
-					deck.name = ark.replace("Deck Name:", "")
-					deck.name = deck.name.strip()
-
-					#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deck.name, deck.pilot, deck.finish, deck.archetype))
-					event.decks.append(deck)
-
-					#Number and name of each card
-					s = deckText.findAll('tr')[2]
-
-					names = []
-					for tmp in s('a'):
-						names.append(tmp.extract().text.strip())
-
-					for tmp in s('h6'):
-						tmp.extract()
-
-					s = re.sub(r'\s', ' ', s.text)
-					s = re.sub(' +', ' ', s)
-					s = s.strip()
-
-					numbahs = s.split(" ")
-					numbahs = list(map(int, numbahs))
-
-					#print(deckText.findAll('th')[5].text.strip())
-
-					stg = deckText.findAll('th')[5].text.strip()
-					stg = stg.split(" ")[0].strip()
-
-					total = int(stg)
-
-					#print(names)
-					#print(numbahs)
-
-					if len(names) != len(numbahs):
-						print("!!! Huston we have a problem at deck %s from event %s on %s" % (deck.name, event.name, event.date))
-						print(names)
-						print(numbahs)
-						index += 1
-						continue
-
-					mainboard = 0
-					for x in range(len(names)):
-						card = Card()
-						cid = card.getCardId(names[x], dbm)
-						card.getCard(dbm, cid, 0)
-
-						if mainboard < total:
-							sideboard = 0
-						else:
-							sideboard = 1
-
-						card.sideboard = sideboard
-						card.copies = numbahs[x]
-						deck.cards.append(card)
-
-						mainboard += numbahs[x]
+				card = Card()
+				cid = card.getCardId(m.text, dbm)
+				card.getCard(dbm, cid, 0)
+				card.copies = n.text
+				deck.cards.append(card)
 			except:
-				pass
+				print("{} {}".format(n.text, m.text))
 
-		event.commitEvent(dbm)
+		#Sideboard
+		sideText = div.find("div", class_="sorted-by-sideboard-container")
 
-		index += 1
+		sideNums = sideText.find_all("span", class_="card-count")
+		sideboard = sideText.find_all("span", class_="card-name")
 
-	if errCount == 5:
-		index -= 10
+		if len(sideNums) != len(sideboard):
+			print("!!! There's a problem with card counts in the sideboard")
 
+		for n, m in zip(sideNums, sideboard):
+			#print("{} {}".format(n.text, m.text))
+			
+			card = Card()
+			cid = card.getCardId(m.text, dbm)
+			card.getCard(dbm, cid, 0)
+			card.sideboard = 1
+			card.copies = n.text
+			deck.cards.append(card)
+
+	#Event player count
+	event.numPlayers = len(event.decks)
+	
+	event.commitEvent(dbm)
+
+	return event.cid
+
+def emptyEvent(url):
+	dbm = Database()
 	with dbm.con:
-		dbm.cur.execute("UPDATE scrapeInfo SET `index` = %s WHERE id = 1", (index, ))
+		dbm.cur.execute("INSERT INTO events (name, date, numPlayers, source) VALUES ('MANUAL ENTRY REQUIRED', '0000/00/00', 0, %s)", (url, ))
+	return -2
 
-	print(index)
-	print("Done")
+def isUrl(url):
+  try:
+    result = urlparse(url)
+    return all([result.scheme, result.netloc])
+  except ValueError:
+    return False
+	
+
+""" def main():
+	url = "https://magic.wizards.com/en/articles/archive/mtgo-standings/legacy-super-qualifier-2020-05-15#decklists"
+	
+	urlFilter(url)
 
 
 if __name__== "__main__":
-	main()
+	main() """

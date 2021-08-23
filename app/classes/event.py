@@ -9,6 +9,7 @@ class Event:
 		self.date = ""
 		self.format = ""
 		self.numPlayers = 0
+		self.source = ""
 		self.decks = []
 
 		self.cid = 0
@@ -17,19 +18,19 @@ class Event:
 	def commitEvent(self, dbm):
 		with dbm.con:
 
-			dbm.cur.execute("INSERT INTO events (name, date, numPlayers) VALUES (%s, %s, %s)", (self.name, self.date, self.numPlayers))
-			eventId = dbm.cur.lastrowid
+			dbm.cur.execute("INSERT INTO events (name, date, numPlayers, source) VALUES (%s, %s, %s, %s)", (self.name, self.date, self.numPlayers, self.source))
+			self.cid = dbm.cur.lastrowid
 
-			self.eventToFormat(dbm, eventId)
+			self.eventToFormat(dbm, self.cid)
 
 			for deck in self.decks:
-				deck.commitDeck(dbm, eventId)
+				deck.commitDeck(dbm, self.cid)
 
 			print("### Inserted %s on %s in format %s" % (self.name, self.date, self.format))
 
-	def updateEvent(self, dbm):
+	def updateEvent(self, dbm, active = 0):
 		with dbm.con:
-			dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s, active = 1 WHERE id = %s", (self.name, self.date, self.numPlayers, self.cid))
+			dbm.cur.execute("UPDATE events SET name = %s, date = %s, numPlayers = %s, active = %s WHERE id = %s", (self.name, self.date, self.numPlayers, active, self.cid))
 
 			self.eventToFormat(dbm, self.cid, 0)
 
@@ -75,24 +76,25 @@ class Event:
 
 	def getEvent(self, dbm):
 		with dbm.con:
-			dbm.cur.execute("SELECT e.name, e.date, e.numPlayers, f.name as formatName FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id JOIN formats f ON f.id = ef.formatId WHERE e.id = %s", (self.cid, ))
+			dbm.cur.execute("SELECT e.name, e.date, e.numPlayers, e.source, f.name as formatName FROM `events` e JOIN eventToFormat ef ON ef.eventId = e.id JOIN formats f ON f.id = ef.formatId WHERE e.id = %s", (self.cid, ))
 			fetch = dbm.cur.fetchone()
 
 			self.name = fetch[0]
 			self.date = fetch[1]
 			self.numPlayers = fetch[2]
-			self.format = fetch[3]
+			self.source = fetch[3]
+			self.format = fetch[4]
 
-			dbm.cur.execute("SELECT d.id, d.name, d.pilot, d.finish, a.name AS arkName FROM decks d JOIN archetypeToDeck ad ON ad.deckId = d.id JOIN archetypes a ON a.id = ad.archetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s", (self.cid, ))
+			dbm.cur.execute("SELECT d.id, d.pilot, d.finish, a.id AS arkId, sa.name as subArkName FROM decks d LEFT JOIN archetypeToDeck ad ON ad.deckId = d.id LEFT JOIN archetypes a ON a.id = ad.archetypeId LEFT JOIN subArchetypeToDeck sad ON sad.deckId = d.id LEFT JOIN subArchetypes sa ON sa.id = sad.subArchetypeId JOIN deckToEvent de ON de.deckId = d.id WHERE de.eventId = %s ORDER BY `order`", (self.cid, ))
 			fetch = dbm.cur.fetchall()
 
 			for d in fetch:
 				deck = Deck()
 				deck.cid = d[0]
-				deck.name = d[1]
-				deck.pilot = d[2]
-				deck.finish = d[3]
-				deck.archetype = d[4]
+				deck.pilot = d[1]
+				deck.finish = d[2]
+				deck.archetype = d[3]
+				deck.subArk = d[4]
 
 				dbm.cur.execute("SELECT c.id, c.name, cd.copies, cd.sideboard FROM cards c JOIN cardToDeck cd ON cd.cardId = c.id WHERE cd.deckId = %s", (deck.cid, ))
 				fetch2 = dbm.cur.fetchall()
@@ -105,7 +107,24 @@ class Event:
 					card.sideboard = int(c[3])
 					if card.sideboard == 0:
 						deck.cards.append(card)
+						deck.mainboardCount += card.copies
 					elif card.sideboard == 1:
 						deck.sideboard.append(card)
+						deck.sideboardCount += card.copies
 
 				self.decks.append(deck)
+
+	def deleteEvent(self, dbm):
+		with dbm.con:
+			dbm.cur.execute("SELECT d.id FROM magic.decks d JOIN magic.deckToEvent dte ON dte.deckId = d.id WHERE dte.eventId = %s", (self.cid, ))
+			fetch = dbm.cur.fetchall()
+
+			for d in fetch:
+				dbm.cur.execute("DELETE FROM magic.decks WHERE id = %s", (d[0], ))
+
+			dbm.cur.execute("DELETE FROM magic.events WHERE id = %s", (self.cid, ))
+
+	def skipEvent(self, dbm):
+		with dbm.con:
+			dbm.cur.execute("UPDATE events SET active = 2 WHERE id = %s", (self.cid, ))
+			

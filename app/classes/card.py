@@ -49,8 +49,10 @@ class Card:
 		self.watermark = ""
 		self.artist = ""
 		self.textless = 0
-		self.curPrice = 0.0
-		self.curFoilPrice = 0.0
+		self.curPrice = 0.0 #depreciated
+		self.curFoilPrice = 0.0 #depricated
+		self.price = 0.0
+		self.foilPrice = 0.0
 		self.imageUrl = ""
 		self.altText = ""
 
@@ -180,8 +182,19 @@ class Card:
 		except:
 			pass
 
-		if self.tcgplayerId != "":
-			self.setPrice(self.tcgplayerId, dbm.token)
+		try:
+			self.price = float(json['prices']['usd'])
+		except:
+			pass
+
+		try:
+			self.foilPrice = float(json['prices']['usd_foil'])
+		except:
+			pass
+
+		#Off for now. Price history isn't being used and probably needs to be done better
+		#if self.tcgplayerId != "":
+		#	self.setPrice(self.tcgplayerId, dbm.token)
 
 		try:
 			self.imageUrl = json['image_uris']['normal']
@@ -230,13 +243,13 @@ class Card:
 			elif full == 0:
 				dbm.cur.execute("SELECT c.id, c.name FROM cards c WHERE c.id = %s LIMIT 1", (cid, ))
 				fetch = dbm.cur.fetchone()
-
+				
 				self.scryfallId = fetch[0]
 				self.name = fetch[0]
 
 	def getCardId(self, name, dbm):
 		with dbm.con:
-			dbm.cur.execute("SELECT id FROM cards WHERE name = %s ", (name, ))
+			dbm.cur.execute("SELECT id FROM cards WHERE name = %s ORDER BY releaseDate DESC", (name, ))
 
 			if dbm.cur.rowcount > 0:
 				fetch = dbm.cur.fetchone()
@@ -244,10 +257,18 @@ class Card:
 				tempName = '%' + name + '%'
 				fill = '%//%'
 
-				dbm.cur.execute("SELECT id FROM `cards` WHERE `name` LIKE %s AND `name` LIKE %s ", (tempName, fill))
-				fetch = dbm.cur.fetchone()
+				dbm.cur.execute("SELECT id FROM `cards` WHERE `name` LIKE %s AND `name` LIKE %s ORDER BY releaseDate DESC", (tempName, fill))
 
-			return fetch[0]
+				if dbm.cur.rowcount > 0:
+					fetch = dbm.cur.fetchone()
+				else:
+					dbm.cur.execute("SELECT id FROM cards WHERE REPLACE(name , '-', ' ') LIKE %s ORDER BY releaseDate DESC", (name, ))
+					fetch = dbm.cur.fetchone()
+
+			try:
+				return fetch[0]
+			except:
+				print(name)
 
 	def commitCard(self, dbm):
 		with dbm.con:
@@ -261,19 +282,19 @@ class Card:
 				if fetch[1] < (int(time.time()) - 2629800):
 					print("Updating %s from %s" % (self.name, self.setCode))
 
-					dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, self.scryfallId))
+					dbm.cur.execute("UPDATE cards SET name = %s, releaseDate = %s, layout = %s, manaCost = %s, cmc = %s, typeLine = %s, oracleText = %s, flavorText = %s, power = %s, toughness = %s, loyalty = %s, reserved = %s, foil = %s, nonfoil = %s, oversized = %s, promo = %s, reprint = %s, variation = %s, collectorNumber = %s, rarity = %s, watermark = %s, artist = %s, textless = %s, price = %s, foilPrice = %s WHERE id = %s", (self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, self.price, self.foilPrice, self.scryfallId))
 
 					self.commitLegalities(dbm)
 					self.commitImage(dbm)
 
-				self.commitPrice(dbm)
+				#self.commitPrice(dbm)
 
 			#Card doesn't exist
 			else:
-				dbm.cur.execute("INSERT INTO cards (id, name, releaseDate, layout, manaCost, cmc, typeLine, oracleText, flavorText, power, toughness, loyalty, reserved, foil, nonfoil, oversized, promo, reprint, variation, collectorNumber, rarity, watermark, artist, textless) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.scryfallId, self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless))
+				dbm.cur.execute("INSERT INTO cards (id, name, releaseDate, layout, manaCost, cmc, typeLine, oracleText, flavorText, power, toughness, loyalty, reserved, foil, nonfoil, oversized, promo, reprint, variation, collectorNumber, rarity, watermark, artist, textless, price, foilPrice) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.scryfallId, self.name, self.releaseDate, self.layout, self.manaCost, self.cmc, self.typeLine, self.oracleText, self.flavorText, self.power, self.toughness, self.loyalty, self.reserved, self.foil, self.nonfoil, self.oversized, self.promo, self.reprint, self.variation, self.collectorNumber, self.rarity, self.watermark, self.artist, self.textless, self.price, self.foilPrice))
 
 				self.commitLegalities(dbm)
-				self.commitPrice(dbm)
+				#self.commitPrice(dbm)
 				self.commitImage(dbm)
 				self.commitSet(dbm)
 				self.commitColors(dbm)

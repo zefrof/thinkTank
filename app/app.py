@@ -1,35 +1,110 @@
-from flask import Flask, render_template, request, session, flash, redirect, url_for
+from flask import Flask, render_template, request, session, flash, redirect, url_for, json
+from datetime import date, datetime, timedelta
 from classes.general import Database, Content, User
 from classes.event import Event
 from classes.deck import Deck
 from classes.card import Card
+from eventFetch import urlFilter
 app = Flask(__name__)
 app.secret_key = b"\xf0/\xa1\xdb'\xfe!\xf68#\xb1\x19\x18\x01\xfb\x0f"
 
 #FRONT END
 @app.route('/')
-@app.route('/<int:page>')
-def home(fid = 0, page = 0):
+def home():
 	dbm = Database()
 	cont = Content()
 
-	events = cont.fetchRecentEvents(dbm, fid, page)
-	
-	half = len(events) // 2
-	e1 = events[:half]
-	e2 = events[half:]
+	""" events = cont.fetchRecentEvents(dbm, date.today())
 
-	return render_template('index.html', e1 = e1, e2 = e2, page = page, fid = fid)
+	#raise ValueError('debug', e1)
+	
+	half = -(-len(events[0]) // 2) #https://stackoverflow.com/a/17511341
+	e1 = events[0][:half]
+	e2 = events[0][half:] """
+
+	#return render_template('index.html', e1 = e1, e2 = e2, day = events[1])
+	return render_template('index.html')
+
+@app.route('/suggester/', methods = ['POST'])
+def suggester():
+	if request.method == 'POST':
+		# Get cards from POST
+		results = request.form
+		cards = results['cards'].splitlines()
+		mtg_format = int(results['format'])
+		ignore_list = []
+		if "type_lands" in results:
+			ignore_list.append("Land")
+		if "type_creature" in results:
+			ignore_list.append("Creature")
+		if "type_instant" in results:
+			ignore_list.append("Instant")
+		if "type_sorcery" in results:
+			ignore_list.append("Sorcery")
+		if "type_enchantment" in results:
+			ignore_list.append("Enchantment")
+		if "type_artifact" in results:
+			ignore_list.append("Artifact")
+		if "type_planeswalker" in results:
+			ignore_list.append("Planeswalker")
+		# print(cards)
+
+		if len(cards) == 0:
+			return "[]"
+
+		# Run the suggester
+		dbm = Database()
+		cont = Content()
+		returned_cards = cont.suggester(dbm, cards, mtg_format, ignore_list)
+
+		# Get suggested card's pictures
+		card_query = 'SELECT c.name, CAST(c.price AS CHAR), m.mediaUrl FROM cards c JOIN mediaToCard mtc ON mtc.cardId = c.id JOIN media m ON m.id = mtc.mediaId WHERE ( '
+		for c in returned_cards:
+			card_query += 'c.id = %s OR '
+
+		card_query = card_query[:-3]
+		card_query += ') AND c.uniqueCard = 1;'
+
+		with dbm.con:
+			dbm.cur.execute(card_query, tuple(returned_cards))
+			card_info = dbm.cur.fetchall()
+
+			#print("HERE")
+			#print(json.dumps(card_info))
+			#card_pics = [x for x, in card_pics]
+
+		return json.dumps(card_info)
 
 @app.route('/event/<int:fid>')
-@app.route('/event/<int:fid>/<int:page>')
-def event(fid = 0, page = 0):
+def event(fid = 0):
 	dbm = Database()
 	cont = Content()
 
-	events = cont.fetchRecentEvents(dbm, fid, page)
+	events = cont.fetchRecentEvents(dbm, date.today(), fid)
 
-	return render_template('event.html', events = events, page = page, fid = fid)
+	return render_template('event.html', events = events[0], fid = fid, day = events[1])
+
+@app.route('/loadmore/', methods = ['POST'])
+def loadMore():
+	if request.method == 'POST':
+		result = request.form
+		d = datetime.strptime(result['day'], '%Y-%m-%d')
+		d = d - timedelta(days = 1)
+
+		dbm = Database()
+		cont = Content()
+
+		events = cont.fetchRecentEvents(dbm, d)
+
+		jason = '{"events": ['
+		for e in events[0]:
+			jason = jason + '{{"eid":"{0}", "name":"{1}", "date":"{2}", "numPlayers":"{3}", "firstPlaceDeckId":"{4}"}},'.format(e.cid, e.name, e.date, e.numPlayers, e.firstPlaceDeckId)
+		jason = jason[:-1]
+		jason = jason + ']}'
+
+		return jason
+	else:
+		return "She broke"
 
 @app.route('/deck/<cid>')
 def deck(cid = 0):
@@ -45,8 +120,54 @@ def deck(cid = 0):
 
 	return render_template('deck.html', deck = deck, decks = decks)
 
+@app.route('/submit/')
+def submit():
+	return render_template('submit.html')
+
+
+@app.route('/edit/', methods = ['POST', 'GET'])
+def edit():
+	cont = Content()
+	dbm = Database()
+	result = request.form
+
+	event = Event()
+	event.cid = urlFilter(result['link'])
+	
+	if event.cid == 0:
+		flash("Event already exists! If you belive this to be an error, contact us in the footer.")
+		return redirect(url_for('submit'))
+	elif event.cid == -2:
+		flash("Event submitted for manuel entry!")
+		return redirect(url_for('submit'))
+	elif event.cid == -1:
+		flash("Not a valid URL")
+		return redirect(url_for('submit'))
+	
+	event.getEvent(dbm)
+
+	formats = cont.getFormats(dbm, 1)
+	ark = cont.getArk(dbm, 1)
+
+	return render_template('edit.html', event = event, formats = formats, ark = ark)
+
+@app.route('/search/', methods = ['POST', 'GET'])
+def search(fid = 0):
+	if request.method == 'POST':
+		result = request.form
+		#print(result['searchSmall'])
+		
+		dbm = Database()
+		cont = Content()
+		events = cont.search(dbm, result['searchSmall'])
+
+		if len(events) == 0:
+			#TODO show user something legit here
+			return "No Results Found"
+		else:
+			return render_template('event.html', events = events, fid = fid)
+
 #CMS
-@app.route('/cms')
 @app.route('/cms/')
 def cmsIndex():
 	user = User()
@@ -93,13 +214,16 @@ def cmsHome():
 	try:
 		check = user.verifyUser(session['id'])
 		if check == True:
-			return render_template('cms/home.html')
+			dbm = Database()
+			cont = Content()
+			ark = cont.getArk(dbm, 1)
+
+			return render_template('cms/home.html', ark = ark)
 	except:
 		pass
 
 	return redirect(url_for('cmsIndex'))
 
-@app.route('/editevent')
 @app.route('/editevent/')
 @app.route('/editevent/<cid>')
 def editEvent(cid = 0):
@@ -128,7 +252,8 @@ def editEvent(cid = 0):
 	return redirect(url_for('cmsIndex'))
 
 @app.route('/saveevent/', methods = ['POST', 'GET'])
-def saveEvent():
+@app.route('/saveevent/<int:active>', methods = ['POST', 'GET'])
+def saveEvent(active = 0):
 	if request.method == 'POST':
 		result = request.form
 		dbm = Database()
@@ -144,40 +269,181 @@ def saveEvent():
 		#print("### Name: %s | Date: %s | Format: %s | Players: %s" % (result['eventName'], result['eventDate'], result['format'], result['numPlayers']))
 
 		deckIds = result.getlist('did')
-		deckNames = result.getlist('deckName')
 		deckPilot = result.getlist('deckPilot')
 		finish = result.getlist('finish')
 		ark = result.getlist('archetype')
+		subArk = result.getlist('subArchetype')
 		mainboard = result.getlist('mainboard')
 		sideboard = result.getlist('sideboard')
-		for i in range(len(deckNames)):
+
+		#print(len(deckPilot))
+		#print(ark)
+		#print(subArk)
+		for i in range(len(deckPilot)):
 			deck = Deck()
 			deck.cid = deckIds[i]
-			deck.name = deckNames[i]
 			deck.pilot = deckPilot[i]
 			deck.finish = finish[i]
 			deck.archetype = ark[i]
+			deck.subArk = subArk[i]
+
+			if deck.pilot == '':
+				deck.pilot = 'Unknown'
 
 			main = mainboard[i].splitlines()
 			side = sideboard[i].splitlines()
 
 			for c in main:
-				spl = c.split(' | ')
-				card = Card()
-				card.copies = spl[0]
-				card.scryfallId = spl[2]
-				deck.cards.append(card)
+				try:
+					qty = c.strip().split(" ", 1)
+					name = qty[1].split("*")
+
+					card = Card()
+					card.copies = qty[0].strip()
+					card.name = name[0].strip()
+
+					if len(name) == 2:
+						card.scryfallId = name[1]
+					else:
+						card.scryfallId = card.getCardId(card.name, dbm)
+
+					deck.cards.append(card)
+				except Exception as e:
+					print("save exception")
+					print(e)
+					flash("Formatting error!")
+					return redirect(url_for('submit'))
 
 			for c in side:
-				spl = c.split(' | ')
-				card = Card()
-				card.copies = spl[0]
-				card.scryfallId = spl[2]
-				card.sideboard = 1
-				deck.cards.append(card)
+				try:
+					qty = c.strip().split(" ", 1)
+					name = qty[1].split("*")
+
+					card = Card()
+					card.copies = qty[0].strip()
+					card.name = name[0].strip()
+
+					if len(name) == 2:
+						card.scryfallId = name[1]
+					else:
+						card.scryfallId = card.getCardId(card.name, dbm)
+
+					card.sideboard = 1
+					deck.cards.append(card)
+				except Exception as e:
+					print("save exception")
+					print(e)
+					flash("Formatting error!")
+					return redirect(url_for('submit'))
 
 			event.decks.append(deck)
 			#print("### Name: %s | Pilot: %s | Finish: %s | Archetype: %s" % (deckNames[i], deckPilot[i], finish[i], ark[i]))
-		event.updateEvent(dbm)
+		
+		if active != 1:
+			active = 0
+		
+		event.updateEvent(dbm, active)
 
-	return redirect(url_for('editEvent'))
+	if active == 1:
+		return redirect(url_for('editEvent'))
+	else:
+		return redirect(url_for('submit'))
+
+@app.route('/delevent/<int:eid>')
+def delEvent(eid = 0):
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			dbm = Database()
+
+			event = Event()
+			event.cid = eid
+			event.deleteEvent(dbm)
+
+			return redirect(url_for('editEvent'))
+		else:
+			return redirect(url_for('home'))
+	except:
+		return redirect(url_for('home'))
+
+@app.route('/skip/<int:eid>')
+def skip(eid = 0):
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			dbm = Database()
+
+			event = Event()
+			event.cid = eid
+			event.skipEvent(dbm)
+
+			return redirect(url_for('editEvent'))
+		else:
+			return redirect(url_for('home'))
+	except:
+		return redirect(url_for('home'))
+
+@app.route('/archetype/', methods = ['POST', 'GET'])
+def archetype():
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			if request.method == 'POST':
+				result = request.form
+				dbm = Database()
+				with dbm.con:
+					dbm.cur.execute("SELECT id FROM archetypes WHERE name LIKE %s", (result['ark'], ))
+
+					if dbm.cur.rowcount >= 1:
+						flash("Archetype already exists.")
+					else:
+						dbm.cur.execute("INSERT INTO archetypes (name) VALUES (%s)", (result['ark'], ))
+						flash("Archetype added.")
+
+			return redirect(url_for('cmsIndex'))
+		else:
+			return redirect(url_for('home'))
+	except:
+		return redirect(url_for('home'))
+
+@app.route('/subarchetype/', methods = ['POST', 'GET'])
+def subArchetype():
+	user = User()
+	try:
+		check = user.verifyUser(session['id'])
+		if check == True:
+			if request.method == 'POST':
+				result = request.form
+				dbm = Database()
+				with dbm.con:
+					dbm.cur.execute("SELECT id FROM subArchetypes WHERE name LIKE %s", (result['subArk'], ))
+
+					if dbm.cur.rowcount >= 1:
+						fetch = dbm.cur.fetchone()
+						dbm.cur.execute("INSERT INTO subArchetypeToArchetype (subArchetypeId, archetypeId) VALUES (%s, %s)", (fetch[0], result['ark']))
+					else:
+						dbm.cur.execute("INSERT INTO subArchetypes (name) VALUES (%s)", (result['subArk'], ))
+						arkId = dbm.cur.lastrowid
+						dbm.cur.execute("INSERT INTO subArchetypeToArchetype (subArchetypeId, archetypeId) VALUES (%s, %s)", (arkId, result['ark']))
+
+			return redirect(url_for('cmsIndex'))
+		else:
+			return redirect(url_for('home'))
+	except Exception as e:
+		print(e)
+		return redirect(url_for('home'))
+
+@app.route('/getsubark/', methods = ['POST', 'GET'])
+def getSubArk():
+	if request.method == 'POST':
+		result = request.form
+		dbm = Database()
+	
+		with dbm.con:
+			dbm.cur.execute("SELECT id, name FROM subArchetypes s JOIN subArchetypeToArchetype saa ON saa.subArchetypeId = s.id WHERE saa.archetypeId = %s", (result['arkId']))
+			fetch = dbm.cur.fetchall()
+
+			return json.dumps(fetch)

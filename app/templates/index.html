@@ -1,63 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
-	<div class=" grid-container">
+	<form id="card_input">
 		<div class="grid-x grid-padding-x">
-			<div class="cell large-12">
-				<h3>Recent Events</h3>
+			<div class="cell small-12 medium-12 large-8 large-offset-2">
+				<h4>Card List</h4>
+				<textarea name="cards" rows="10" placeholder="Enter each card on a new line. Capitalization doesn't matter, punctuation does."></textarea>
 			</div>
-			<div class="cell large-6 small-12 rightBorder">
-				<!-- List of Recent Events -->
-				{% for e in e1 %}
-					<div class="cell large-6">
-						<h4 class="homeList">
-							<!-- Name -->
-							<a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
-						</h4>
-					</div>
-					<div class="cell large-2">
-						<p>
-							<!-- # of Players -->
-							{{e.numPlayers}}
-						</p>
-					</div>
-					<div class="cell large-4">
-						<p>
-							<!-- Date -->
-							{{e.date}}
-						</p>
-					</div>
-				{% endfor %}
+			<div class="cell small-12 medium-6 large-3">
+				<h4>Select Format</h4>
+				<select name="format">
+					<option value="1">Standard</option>
+					<option value="5">Modern</option>
+					<option value="10" selected>Commander</option>
+					<option value="4">Pioneer</option>
+					<option value="7">Pauper</option>
+					<option value="6">Legacy</option>
+					<option value="8">Vintage</option>
+					<!-- <option value="0">Kitchen Table</option> -->
+				</select>
 			</div>
-			<div class="cell large-6 small-12">
-				<!-- List of Recent Events Cont -->
-				{% for e in e2 %}
-					<div class="cell large-6">
-						<h4 class="homeList">
-							<!-- Name -->
-							<a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
-						</h4>
-					</div>
-					<div class="cell large-2">
-						<p>
-							<!-- # of Players -->
-							{{e.numPlayers}}
-						</p>
-					</div>
-					<div class="cell large-4">
-						<p>
-							<!-- Date -->
-							{{e.date}}
-						</p>
-					</div>
-				{% endfor %}
+			<!-- <div class="cell small-12 medium-6 large-3">
+				<input name="budget" type="text" placeholder="Max Budget (USD)">
+			</div> -->
+			<div class="cell small-12 medium-6 large-4">
+				<h4>Card Types To Ignore</h4>
+				<input id="type_lands" name="type_lands" type="checkbox">
+					<label for="type_lands">Land</label>
+				<input id="type_creature" name="type_creature" type="checkbox">
+					<label for="type_creature">Creature</label>
+				<input id="type_instant" name="type_instant" type="checkbox">
+					<label for="type_instant">Instant</label>
+				<input id="type_sorcery" name="type_sorcery" type="checkbox">
+					<label for="type_sorcery">Sorcery</label>
+				<input id="type_enchantment" name="type_enchantment" type="checkbox">
+					<label for="type_enchantment">Enchantment</label>
+				<input id="type_artifact" name="type_artifact" type="checkbox">
+					<label for="type_artifact">Artifact</label>
+				<input id="type_planeswalker" name="type_planeswalker" type="checkbox">
+					<label for="type_planeswalker">Planeswalker</label>
 			</div>
-			<div class="celfl alignCenter">
-				<!-- Page Numbers / Previous & Next -->
-				{% if page > 0 %}
-					<div class="cell small-6"><a class="small button info float-right" href="/{{page - 1}}">Prev</a></div>
-				{% endif %}
-				<div class="cell small-6"><a class="small button info" href="/{{page + 1}}">Next</a></div>
+			<div class="cell small-12 medium-12 large-12">
+				<input type="button" value="Find Cards" class="expanded button info tt-button" onclick="suggestCards($('#card_input').serialize());">
 			</div>
-		</div>
-	</div>
+		 </div>
+		 <div id="results" class="grid-x grid-padding-x"></div>
+	</form>
 {% endblock %}

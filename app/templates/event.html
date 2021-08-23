@@ -2,33 +2,32 @@
 {% block content %}
 	<div class="grid-container">
 		<div class="grid-x grid-padding-x">
-			{% for e in events %}
-				<div class="cell large-6">
-					<h4>
-						<!-- Name -->
-						<a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
-					</h4>
-				</div>
-				<div class="cell large-2">
-					<p>
-						<!-- # of Players -->
-						{{e.numPlayers}}
-					</p>
-				</div>
-				<div class="cell large-4">
-					<p>
-						<!-- Date -->
-						{{e.date}}
-					</p>
-				</div>
-			{% endfor %}
+			<div id="col1">
+				{% for e in events %}
+					<div class="cell large-6">
+						<h4>
+							<!-- Name -->
+							<a href="/deck/{{e.firstPlaceDeckId}}">{{e.name}}</a>
+						</h4>
+					</div>
+					<div class="cell large-2">
+						<p>
+							<!-- # of Players -->
+							{{e.numPlayers}}
+						</p>
+					</div>
+					<div class="cell large-4">
+						<p>
+							<!-- Date -->
+							{{e.date}}
+						</p>
+					</div>
+				{% endfor %}
+			</div>
 			<hr>
 			<div class="celfl alignCenter">
-				<!-- Page Numbers / Previous & Next -->
-				{% if page > 0 %}
-					<div class="cell small-6"><a class="small button info float-right" href="/event/{{fid}}/{{page - 1}}">Prev</a></div>
-				{% endif %}
-				<div class="cell small-6"><a class="small button info" href="/event/{{fid}}/{{page + 1}}">Next</a></div>
+				<!-- Load moar master race -->
+				<div class="cell small-6"><input id="loadMore" type="button" value="Load More" class="small button info" onclick="loadMore('{{day}}', '{{fid}}');"></div>
 			</div>
 		</div>
 	</div>
