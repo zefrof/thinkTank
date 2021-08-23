@@ -6,7 +6,7 @@ from classes.deck import Deck
 from classes.card import Card
 from eventFetch import urlFilter
 app = Flask(__name__)
-app.secret_key = b"\xf0/\xa1\xdb'\xfe!\xf68#\xb1\x19\x18\x01\xfb\x0f"
+app.secret_key = b"SECRET"
 
 #FRONT END
 @app.route('/')

@@ -207,8 +207,8 @@ class Database:
 		#bearer = requests.post("https://api.tcgplayer.com/token",
 		#	data = {
 		#		"grant_type": "client_credentials",
-		#		"client_id": "A7A184B3-923E-49EC-900F-204016D37EE2",
-		#		"client_secret": "646E7BEC-556B-45EF-8746-3ADCF32FAB49",
+		#		"client_id": "ID",
+		#		"client_secret": "SECRET",
 		#	})
 		#self.token = bearer.json()
 
